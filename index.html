@@ -4297,13 +4297,140 @@ renderBadgeCounts();
 window.scrollTo(0,0);
 
 };
+  
   window.watchRewardAd = function(){
 
   const status = $("adRewardStatus");
 
   if(status){
     status.innerText =
-      "📺 Rewarded Ad প্রস্তুত হচ্ছে...";
+      "📺 বিজ্ঞাপন লোড হচ্ছে...";
+  }
+
+  if(
+    window.AndroidRewardAd &&
+    typeof window.AndroidRewardAd.show === "function"
+  ){
+
+    window.AndroidRewardAd.show();
+
+  }else{
+
+    if(status){
+      status.innerText =
+        "❌ Rewarded Ad এখনো প্রস্তুত নয়";
+    }
+
+  }
+
+};
+
+
+/* ANDROID থেকে Reward পাওয়ার পর কল হবে */
+
+window.rewardAdCompleted = async function(){
+
+  const status = $("adRewardStatus");
+
+  const u = fxFirebase.user;
+
+  if(!u){
+
+    if(status){
+      status.innerText =
+        "❌ Login পাওয়া যায়নি";
+    }
+
+    return;
+
+  }
+
+  try{
+
+    const ref = doc(
+      db,
+      "users",
+      u.uid
+    );
+
+    const newCoins =
+      await runTransaction(
+        db,
+        async(transaction)=>{
+
+          const snap =
+            await transaction.get(ref);
+
+          const oldCoins =
+            snap.exists()
+            ?
+            Number(
+              snap.data().coins ?? 0
+            )
+            :
+            0;
+
+          const updatedCoins =
+            oldCoins + 10;
+
+          transaction.set(
+            ref,
+            {
+              coins: updatedCoins,
+              updatedAt: serverTimestamp()
+            },
+            {
+              merge:true
+            }
+          );
+
+          return updatedCoins;
+
+        }
+      );
+
+    userCoins = newCoins;
+
+    const name =
+      u.displayName ||
+      "FantasyXI User";
+
+    updateWalletUI(
+      name,
+      userCoins
+    );
+
+    if(
+      $("requestWalletCoins")
+    ){
+
+      $("requestWalletCoins")
+        .textContent =
+        userCoins;
+
+    }
+
+    if(status){
+
+      status.innerText =
+        "🎉 বিজ্ঞাপন দেখার জন্য +10 Coins যোগ হয়েছে!";
+
+    }
+
+  }catch(e){
+
+    console.error(
+      "Reward Coins:",
+      e
+    );
+
+    if(status){
+
+      status.innerText =
+        "❌ Coins যোগ করা যায়নি";
+
+    }
+
   }
 
 };
