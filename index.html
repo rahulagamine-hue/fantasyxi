@@ -393,12 +393,7 @@ input{
 
 <div class="small">
 Firebase-এর <b>matches</b> collection থেকে Match দেখাবে
-</div> 
-  <div class="small">
-Firebase-এর <b>matches</b> collection থেকে Match দেখাবে
 </div>
-
-<div id="matchesBanner"></div>
 
 <div class="tabs">
 
@@ -436,9 +431,7 @@ Finished
 
 <div id="contestMatchName" class="small">
 Match নির্বাচন করুন
-</div> 
-
-  <div id="contestsBanner"></div>
+</div>
 
 <div class="card">
 <b>🏆 Available Contests</b>
@@ -458,7 +451,6 @@ Team তৈরি করার পর Contest Join করতে পারবে�
 </section>
 
 
-
 <!-- CREATE TEAM -->
 <section id="create" class="page">
 
@@ -466,8 +458,6 @@ Team তৈরি করার পর Contest Join করতে পারবে�
 
 <div id="selectedMatchName" class="small"></div>
 
-<div id="createBanner"></div>
-  
 <!-- Team Name যোগ করা হয়েছে -->
 <div class="card">
 <b>🏷️ Team Name</b>
@@ -558,7 +548,7 @@ Captain 2× এবং VC 1.5× Points
 
 <div class="title">✅ Team Saved</div>
 
-<div class="card">
+  <div class="card" onclick="editTeam('${t.id}')">
 
 <div style="font-size:20px">✓</div>
 
@@ -566,7 +556,7 @@ Captain 2× এবং VC 1.5× Points
 
 <div id="savedInfo" class="small"></div>
 
-</div>
+</>
 
 <button class="btn full" onclick="go('myteams')">
 View My Teams
@@ -1126,10 +1116,8 @@ fxFirebase.ready=true;
 $("authScreen").classList.add("hide");
 $("mainApp").classList.remove("hide");
 
-$("firebaseStatus").textContent="🟢 Firebase Connected";
-
-$("firebaseDetails").textContent=
-"🟢 Connected • "+(user.email||"Google Account");
+  $("firebaseStatus").style.display="none";
+$("firebaseDetails").style.display="none";
 
 $("profileEmail").textContent=
 user.email||"Google Account";
@@ -3351,8 +3339,7 @@ isMine
 
 <div class="small">
 ${esc(
-t.userName||
-t.email||
+t.userName ||
 "FantasyXI User"
 )}
 </div>
