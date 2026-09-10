@@ -856,9 +856,10 @@ setDoc,
 addDoc,
 onSnapshot,
 serverTimestamp,
-runTransaction
+runTransaction,
+query,
+where
 }from"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
 
 const firebaseConfig={
 apiKey:"AIzaSyDhykFRKKt_Nt161SWDuNSWeDYDnO_H-xc",
@@ -3808,7 +3809,6 @@ err.textContent=
 
 };
 
-
 function startBadgeListener(){
 
 if(badgeUnsubscribe)
@@ -3818,113 +3818,199 @@ const u=fxFirebase.user;
 
 if(!u)return;
 
+
+/* শুধু এই User-এর Badge Request পড়বে */
+
+const badgeQuery=query(
+collection(db,"badgeRequests"),
+where("userId","==",u.uid)
+);
+
+
 badgeUnsubscribe=
 onSnapshot(
-collection(db,"badgeRequests"),
+badgeQuery,
 snap=>{
 
 const list=[];
-const counts=
-{1:0,2:0,3:0,4:0};
+
+const counts={
+1:0,
+2:0,
+3:0,
+4:0
+};
+
 
 snap.forEach(ds=>{
 
 const d=ds.data()||{};
 
-if(
-String(d.userId)!==
-String(u.uid)
+const st=String(
+d.status||"pending"
 )
-return;
+.trim()
+.toLowerCase();
+
 
 list.push({
 id:ds.id,
-...d
+...d,
+status:st
 });
 
-const st=
-String(d.status||"")
-.toLowerCase();
+
+/* APPROVED BADGE COUNT */
 
 if(
 st==="approved"||
+st==="approve"||
 d.approved===true
 ){
 
-const bid=
-Number(d.badgeId);
+const bid=Number(d.badgeId);
 
 if(
 Object.prototype.hasOwnProperty.call(
-counts,bid
+counts,
+bid
 )
-)
+){
+
 counts[bid]++;
+
+}
 
 }
 
 });
 
+
+/* BADGE COUNT UPDATE */
+
 window.__badgeCounts=counts;
 
 renderBadgeCounts();
 
-list.sort(
-(a,b)=>
-(
-b.updatedAt?.seconds||
-b.createdAt?.seconds||
-0
-)-
-(
+
+/* NEWEST FIRST */
+
+list.sort((a,b)=>{
+
+const aTime=
 a.updatedAt?.seconds||
 a.createdAt?.seconds||
-0
-)
-);
+0;
 
-const latest=list.slice(0,2);
+const bTime=
+b.updatedAt?.seconds||
+b.createdAt?.seconds||
+0;
 
-$("notificationList").innerHTML=
-!latest.length
-?
-"কোনো নতুন Notification নেই।"
-:
-latest.map(d=>{
+return bTime-aTime;
 
-const st=
-String(
+});
+
+
+/* NOTIFICATION */
+
+const box=$("notificationList");
+
+if(!box)return;
+
+
+if(!list.length){
+
+box.innerHTML=
+"কোনো নতুন Notification নেই।";
+
+return;
+
+}
+
+
+box.innerHTML=
+list.map(d=>{
+
+const st=String(
 d.status||"pending"
-).toLowerCase();
+)
+.trim()
+.toLowerCase();
+
+
+let icon="⏳";
 
 let text=
-`⏳ ${d.badgeName||"Badge"} Request Pending`;
+`${d.badgeName||"Badge"} Request Pending`;
 
-if(st==="approved")
-text=
-`✅ ${d.badgeName||"Badge"} Approved`;
+
+/* APPROVED */
 
 if(
-st==="rejected"||
-st==="declined"
-)
+st==="approved"||
+st==="approve"||
+d.approved===true
+){
+
+icon="✅";
+
 text=
-`❌ ${d.badgeName||"Badge"} Rejected`;
+`${d.badgeName||"Badge"} Approved`;
+
+}
+
+
+/* REJECTED */
+
+else if(
+st==="rejected"||
+st==="declined"||
+st==="reject"
+){
+
+icon="❌";
+
+text=
+`${d.badgeName||"Badge"} Rejected`;
+
+}
+
 
 return`
+
 <div
 class="notification"
 style="background:#123d31;border-color:#17604a">
 
-${esc(text)}
+${icon} ${esc(text)}
 
 </div>
+
 `;
 
 }).join("");
 
 },
-e=>console.error("badge:",e)
+e=>{
+
+console.error(
+"Badge Notification Error:",
+e
+);
+
+const box=$("notificationList");
+
+if(box){
+
+box.innerHTML=
+`<div class="notification dangerText">
+❌ Badge Notification load হয়নি
+</div>`;
+
+}
+
+}
 );
 
 }
