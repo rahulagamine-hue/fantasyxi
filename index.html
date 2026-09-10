@@ -3913,11 +3913,12 @@ return bTime-aTime;
 
 const box=$("notificationList");
 
-if(!box)return;
-
-
+if(!box)return; 
+  
 if(!list.length){
-
+  
+list=list.slice(0,3);
+  
 box.innerHTML=
 "কোনো নতুন Notification নেই।";
 
@@ -3925,9 +3926,8 @@ return;
 
 }
 
-
 box.innerHTML=
-list.map(d=>{
+list.slice(0,3).map(d=>{
 
 const st=String(
 d.status||"pending"
