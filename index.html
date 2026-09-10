@@ -14,8 +14,15 @@ button{cursor:pointer}
 .page{display:none;padding:9px}
 .page.active{display:block}
 .card,.match,.player,.livebox,.lb,.setting,.contest{
- background:#0b271e;border:1px solid #164638;border-radius:9px;padding:8px;margin:6px 0
+ background:#0b271e;border:1px solid #164638;border-radius:7px;padding:5px;margin:4px 0
 }
+  
+#home .homeSmallCard .badgeCard{
+  padding:1pxpx !important;
+  min-height:0 !important;
+  font-size:2px !important;
+}
+
 .header{
  padding:9px 11px;background:#06150f;border-bottom:1px solid #164638;
  position:sticky;top:0;z-index:10
@@ -73,6 +80,7 @@ input{
 .hero h2{margin:0 0 4px;font-size:16px}
 .featureGrid,.badgeGrid{
  display:grid;grid-template-columns:repeat(2,1fr);gap:5px
+  
 }
 .feature,.badgeCard{
  background:#0b271e;border:1px solid #164638;border-radius:8px;
@@ -86,6 +94,12 @@ input{
  width:30px;height:30px;border-radius:50%;background:#163d30;
  display:flex;align-items:center;justify-content:center;font-size:16px
 }
+  
+  .feature,.badgeCard{
+ background:#0b271e;border:1px solid #164638;border-radius:8px;
+ padding:7px;text-align:center
+}
+  
 .pm{font-size:8px;color:#8ba89d;margin-top:2px}
 .buy{
  border:1px solid #28604e;background:#12372b;color:#fff;
@@ -126,6 +140,7 @@ input{
  width:100%;background:#fff;color:#222;border:0;border-radius:7px;
  padding:8px;font-weight:bold
 }
+
 .error{font-size:9px;color:#ff8f8f}
 .ok{font-size:9px;color:#19d66b}
 .hide{display:none!important}
@@ -292,20 +307,18 @@ input{
 <b id="homeCoins">0</b> Coins
 </div>
 </div>
-
-
-<div class="card">
+<div class="card homeSmallCard">
 <div class="row">
 <div class="grow">
 <b>🏅 My Badges</b>
 <div class="small">আপনি কতগুলো Badge পেয়েছেন</div>
 </div>
 </div>
-<div id="badgeCountGrid" class="badgeGrid" style="margin-top:6px"></div>
-</div>
+<div id="badgeCountGrid" class="badgeGrid" style="margin-top:1xpx"></div>
+</dpx>
 
 
-<div class="card">
+<div class="card homeSmallCard">
 <div class="row">
 <div class="grow">
 <b>🏅 Badge Request</b>
@@ -589,7 +602,9 @@ Firebase-এর <b>teams</b> collection থেকে আপনার Team
 
 <div class="title">🔴 Live Matches</div>
 
-<div id="liveList"></div>
+<div id="liveList"></div> 
+  
+  <div id="liveContestList"></div>
 
 <button class="btn dark full" onclick="go('matches')">
 ← Back
@@ -2959,7 +2974,6 @@ total.toFixed(1)
 
 }
 
-
 /* LIVE */
 
 window.openLive=id=>{
@@ -2978,7 +2992,9 @@ subscribePlayerStats(id);
 
 renderLiveScore();
 
-go("livescore");
+go("live");
+
+loadLiveContests(id);
 
 };
 
@@ -2989,8 +3005,7 @@ const b=$("liveList");
 
 if(!b)return;
 
-const arr=
-matches.filter(isLive);
+const arr=matches.filter(isLive);
 
 b.innerHTML=
 arr.length
@@ -3003,9 +3018,7 @@ arr.map(m=>`
 
 <b>${esc(matchTitle(m))}</b>
 
-<span class="badge">
-LIVE
-</span>
+<span class="badge">LIVE</span>
 
 </div>
 
@@ -3037,6 +3050,111 @@ Live Score →
 }
 
 
+async function loadLiveContests(matchId){
+
+const box=$("liveContestList");
+
+if(!box)return;
+
+box.innerHTML=
+`<div class="card">
+🔄 Contest load হচ্ছে...
+</div>`;
+
+try{
+
+const snap=await getDocs(
+collection(db,"contests")
+);
+
+const list=[];
+
+snap.forEach(d=>{
+
+const c=d.data()||{};
+
+const mid=c.matchId??c.match??"";
+
+if(String(mid)!==String(matchId))
+return;
+
+if(contestStatus(c)==="closed")
+return;
+
+const money=contestMoney(c);
+
+/* Contest-এর আসল নাম */
+
+const name=
+c.name??
+c.contestName??
+c.title??
+`Contest ${list.length+1}`;
+
+list.push({
+id:d.id,
+name,
+prize:money.prize
+});
+
+});
+
+if(!list.length){
+
+box.innerHTML=
+`<div class="empty">
+📭 এই Live Match-এর কোনো Contest নেই।
+</div>`;
+
+return;
+
+}
+
+box.innerHTML=list.map(c=>`
+
+<div class="card">
+
+<div class="row">
+
+<div class="grow">
+
+<b>🏆 ${esc(c.name)}</b>
+
+<div class="contestLine">
+🏆 Prize:
+<b>${c.prize}</b> Coins
+</div>
+
+</div>
+
+<button
+class="btn"
+onclick="openContestLeaderboard('${esc(c.id)}')">
+
+Leaderboard →
+
+</button>
+
+</div>
+
+</div>
+
+`).join("");
+
+}catch(e){
+
+console.error("Live Contest Error:",e);
+
+box.innerHTML=
+`<div class="card dangerText">
+❌ Contest load হয়নি
+</div>`;
+
+}
+
+}
+
+
 function renderLiveScore(){
 
 const b=$("liveScoreBox");
@@ -3056,7 +3174,6 @@ return b.innerHTML=
 </div>`;
 
 b.innerHTML=
-
 `
 <div class="liveScoreCard">
 
@@ -3083,6 +3200,20 @@ ${esc(m.event||"")}
 
 }
 
+/* CONTEST LEADERBOARD OPEN */
+
+window.openContestLeaderboard=contestId=>{
+
+window.selectedContest=contestId;
+
+if(!selectedMatch)
+return toast("❌ Match পাওয়া যায়নি");
+
+go("leaderboard");
+
+renderLeaderboard();
+
+};
 
 /* CURRENT USER TEAM */
 
@@ -3206,79 +3337,123 @@ ${teamPoints(t)}
 }
 
 
+
 /* =====================================================
-   NEW FULL LEADERBOARD
+   CONTEST SPECIFIC LEADERBOARD
    ===================================================== */
 
-function renderLeaderboard(){
+window.openContestLeaderboard=async contestId=>{
+
+window.selectedContest=String(contestId);
+
+if(!selectedMatch)
+return toast("❌ Match পাওয়া যায়নি");
+
+go("leaderboard");
 
 const b=$("leaderBox");
 
 if(!b)return;
 
-if(!selectedMatch){
-
 b.innerHTML=
-`<div class="empty">
-আগে একটি Match নির্বাচন করুন।
+`<div class="card">
+🔄 Contest Leaderboard load হচ্ছে...
 </div>`;
 
-return;
+try{
 
-}
+/* এই Contest-এ Join করা Team বের করা */
 
+const entrySnap=
+await getDocs(
+collection(db,"contestEntries")
+);
 
-/*
- selected Match-এর সব Team নেওয়া হচ্ছে।
- IMPORTANT:
- subscribeTeams() শুধু নিজের Team রাখে।
- Leaderboard-এর জন্য সরাসরি teams collection পড়ছি।
-*/
-
-getDocs(collection(db,"teams"))
-.then(snap=>{
-
-const allTeams=
-snap.docs
+const entries=
+entrySnap.docs
 .map(d=>({
 id:d.id,
 ...d.data()
 }))
-.filter(
-t=>
-String(t.matchId||t.match)===
-String(selectedMatch)
+.filter(e=>
+String(e.matchId||e.match)===
+String(selectedMatch)&&
+String(e.contestId)===
+String(contestId)&&
+String(e.status||"joined").toLowerCase()!=="cancelled"
 );
 
-if(!allTeams.length){
+/* Contest-এর নাম */
+
+const contestName=
+entries[0]?.contestName||
+contests.find(
+c=>String(c.id)===String(contestId)
+)?.name||
+"Contest";
+
+/* কেউ Join না করলে */
+
+if(!entries.length){
 
 b.innerHTML=
-`<div class="empty">
-📭 এই Match-এ এখনো কোনো Team নেই।
-</div>`;
+`
+<div class="card">
+
+<div class="title">
+🏆 ${esc(contestName)}
+</div>
+
+<div class="empty">
+📭 এই Contest-এ এখনো কেউ Join করেনি।
+</div>
+
+</div>
+`;
 
 return;
 }
 
+/* Match-এর সব Team নেওয়া */
+
+const teamSnap=
+await getDocs(
+collection(db,"teams")
+);
+
+const allTeams=
+teamSnap.docs
+.map(d=>({
+id:d.id,
+...d.data()
+}))
+.filter(t=>
+String(t.matchId||t.match)===
+String(selectedMatch)
+);
 
 /*
- Points calculate
+ শুধু এই Contest-এ Join করা Team
 */
+
+const joinedTeamIds=
+new Set(
+entries.map(e=>String(e.teamId))
+);
 
 const board=
-allTeams.map(t=>{
+allTeams
+.filter(t=>
+joinedTeamIds.has(String(t.id))
+)
+.map(t=>({
 
-return{
 ...t,
 total:teamPoints(t)
-};
 
-});
+}));
 
-
-/*
- বেশি Points আগে
-*/
+/* বেশি Points আগে */
 
 board.sort(
 (a,z)=>
@@ -3286,12 +3461,63 @@ Number(z.total)-
 Number(a.total)
 );
 
+if(!board.length){
+
+b.innerHTML=
+`
+<div class="card">
+
+<div class="title">
+🏆 ${esc(contestName)}
+</div>
+
+<div class="empty">
+📭 এই Contest-এর Team পাওয়া যায়নি।
+</div>
+
+</div>
+`;
+
+return;
+}
 
 const myUid=
 fxFirebase.user?.uid||"";
 
-
 b.innerHTML=
+`
+
+<div class="card">
+
+<div class="row">
+
+<div class="grow">
+
+<b>🏆 ${esc(contestName)}</b>
+
+<div class="small">
+Contest Leaderboard
+</div>
+
+</div>
+
+<div style="text-align:right">
+
+<b class="green">
+${board.length}
+</b>
+
+<div class="small">
+Teams
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+${
 board.map((t,index)=>{
 
 const teamName=
@@ -3307,9 +3533,8 @@ const playersList=
 getTeamPlayerObjects(t);
 
 const safeId=
-"lb_"+String(t.id)
+"contest_lb_"+String(t.id)
 .replace(/[^a-zA-Z0-9_-]/g,"_");
-
 
 return`
 
@@ -3337,7 +3562,7 @@ isMine
 
 <div class="small">
 ${esc(
-t.userName ||
+t.userName||
 "FantasyXI User"
 )}
 </div>
@@ -3358,7 +3583,6 @@ Points
 
 </div>
 
-
 <div style="padding:0 9px 7px">
 
 <button
@@ -3371,7 +3595,6 @@ onclick="toggleBoardTeam('${safeId}')">
 
 </div>
 
-
 <div
 id="${safeId}"
 class="teamBoardBody hide">
@@ -3383,56 +3606,60 @@ playersList.map(p=>{
 
 const s=p.stats||{};
 
-let role="";
-
-if(p.multiplier===2)
-role="C • 2×";
-else if(p.multiplier===1.5)
-role="VC • 1.5×";
-
 return`
 
-<div class="teamPlayer">
+<div class="player">
 
-<span>
+<div class="avatar">
+${esc(p.av||"👤")}
+</div>
 
-${esc(p.av)}
+<div class="grow">
+
+<b>
 ${esc(p.name)}
-
-${
-role
-?
-`<span class="mult">${role}</span>`
-:
-""
-}
+</b>
 
 <div class="small">
 
-Runs ${Number(s.runs||0)}
-•
-4s ${Number(s.fours||0)}
-•
-6s ${Number(s.sixes||0)}
-•
-Wkts ${Number(s.wickets||s.wkts||0)}
+${
+p.multiplier===2
+?
+"👑 Captain • 2×"
+:
+p.multiplier===1.5
+?
+"⭐ Vice Captain • 1.5×"
+:
+"Player"
+}
 
 </div>
 
-</span>
+</div>
 
-<span class="playerPoint">
-${p.points}
-</span>
+<div style="text-align:right">
+
+<b class="green">
+${Number(p.points).toFixed(1)}
+</b>
+
+<div class="small">
+Points
+</div>
+
+</div>
 
 </div>
 
 `;
 
 }).join("")
+
 :
+
 `<div class="empty">
-Player data পাওয়া যায়নি।
+📭 Player পাওয়া যায়নি।
 </div>`
 }
 
@@ -3442,29 +3669,32 @@ Player data পাওয়া যায়নি।
 
 `;
 
-}).join("");
+}).join("")
+}
 
-})
-.catch(e=>{
+`;
 
-console.error("Leaderboard:",e);
+}catch(e){
+
+console.error("Contest Leaderboard Error:",e);
 
 b.innerHTML=
-`<div class="card dangerText">
+`
+<div class="card dangerText">
 
-❌ Leaderboard load হয়নি।
+❌ Contest Leaderboard load হয়নি।
 
 <br><br>
 
-Firestore Rules-এ
-<b>teams</b> collection read permission
-পরীক্ষা করুন।
+Firestore Rules পরীক্ষা করুন।
 
-</div>`;
-
-});
+</div>
+`;
 
 }
+
+};
+
 
 
 /* LEADERBOARD OPEN/CLOSE */
