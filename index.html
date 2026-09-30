@@ -822,7 +822,7 @@ font-size:10px;
 z-index:99">
 </div>
 
-  
+
 <script type="module">
 
 import{
@@ -855,7 +855,6 @@ runTransaction,
 query,
 where
 }from"https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
 
 const firebaseConfig={
 apiKey:"AIzaSyDhykFRKKt_Nt161SWDuNSWeDYDnO_H-xc",
@@ -890,7 +889,6 @@ let chosen=[];
 let cap=null;
 let vc=null;
 let role="ALL";
-
 let selectedMatch=null;
 let editingTeamId=null;
 let currentMatchTab="upcoming";
@@ -907,33 +905,23 @@ let requestBadgeId=null;
 let isSubmittingBadgeRequest=false;
 
 
-/* =====================================================
-   HELPERS
-===================================================== */
+/* HELPERS */
 
 const $=id=>document.getElementById(id);
 
-
 function toast(t){
-
 const e=$("toast");
-
 if(!e)return;
-
 e.textContent=t;
 e.style.display="block";
-
 clearTimeout(window.__toastTimer);
-
 window.__toastTimer=setTimeout(()=>{
 e.style.display="none";
 },2200);
-
 }
 
 
 function esc(s){
-
 return String(s??"").replace(
 /[&<>"']/g,
 m=>({
@@ -944,23 +932,17 @@ m=>({
 "'":"&#39;"
 }[m])
 );
-
 }
 
 
 function showAuthError(id,msg){
-
 const e=$(id);
-
 if(e)e.textContent="❌ "+msg;
-
 }
 
 
 function authError(c){
-
 return({
-
 "auth/invalid-credential":"Email অথবা Password ভুল",
 "auth/user-not-found":"Account পাওয়া যায়নি",
 "auth/wrong-password":"Password ভুল",
@@ -968,71 +950,42 @@ return({
 "auth/invalid-email":"সঠিক Email দিন",
 "auth/popup-closed-by-user":"Google Login বন্ধ করা হয়েছে",
 "auth/too-many-requests":"অনেকবার চেষ্টা হয়েছে, পরে আবার চেষ্টা করুন"
-
 })[c]||"Login Error";
-
 }
 
 
 function makeReferralCode(uid){
-
 return"FX"+String(uid).slice(-8).toUpperCase();
-
 }
 
 
-/* =====================================================
-   AUTH
-===================================================== */
+/* AUTH */
 
 window.login=async()=>{
-
 const email=$("loginEmail").value.trim();
 const pass=$("loginPassword").value;
 
 if(!email||!pass)
-return showAuthError(
-"loginError",
-"Email ও Password দিন"
-);
+return showAuthError("loginError","Email ও Password দিন");
 
 try{
-
-await signInWithEmailAndPassword(
-auth,
-email,
-pass
-);
-
+await signInWithEmailAndPassword(auth,email,pass);
 }catch(e){
-
-showAuthError(
-"loginError",
-authError(e.code)
-);
-
+showAuthError("loginError",authError(e.code));
 }
-
 };
 
 
 window.createAccount=async()=>{
-
 const name=$("createName").value.trim();
 const email=$("createEmail").value.trim();
 const pass=$("createPassword").value;
 
 if(!name)
-return showAuthError(
-"createError",
-"নাম দিন"
-);
+return showAuthError("createError","নাম দিন");
 
 if(!email||!pass)
-return showAuthError(
-"createError",
-"Email ও Password দিন"
-);
+return showAuthError("createError","Email ও Password দিন");
 
 if(pass.length<6)
 return showAuthError(
@@ -1042,20 +995,12 @@ return showAuthError(
 
 try{
 
-const c=
-await createUserWithEmailAndPassword(
-auth,
-email,
-pass
+const c=await createUserWithEmailAndPassword(
+auth,email,pass
 );
 
 try{
-
-await updateProfile(
-c.user,
-{displayName:name}
-);
-
+await updateProfile(c.user,{displayName:name});
 }catch(_){}
 
 await setDoc(
@@ -1076,34 +1021,19 @@ updatedAt:serverTimestamp()
 );
 
 }catch(e){
-
-showAuthError(
-"createError",
-authError(e.code)
-);
-
+showAuthError("createError",authError(e.code));
 }
-
 };
 
 
 window.googleLogin=async()=>{
-
 try{
 
-const r=
-await signInWithPopup(
-auth,
-provider
-);
-
+const r=await signInWithPopup(auth,provider);
 const u=r.user;
 
-const userRef=
-doc(db,"users",u.uid);
-
-const old=
-await getDoc(userRef);
+const userRef=doc(db,"users",u.uid);
+const old=await getDoc(userRef);
 
 const data={
 userId:u.uid,
@@ -1113,7 +1043,6 @@ updatedAt:serverTimestamp()
 };
 
 if(!old.exists()){
-
 Object.assign(data,{
 coins:0,
 referralCode:makeReferralCode(u.uid),
@@ -1121,92 +1050,50 @@ referralCompleted:false,
 referralCount:0,
 referralEarned:0
 });
-
-}else if(!old.data().referralCode){
-
-data.referralCode=
-makeReferralCode(u.uid);
-
+}
+else if(!old.data().referralCode){
+data.referralCode=makeReferralCode(u.uid);
 }
 
-await setDoc(
-userRef,
-data,
-{merge:true}
-);
+await setDoc(userRef,data,{merge:true});
 
 }catch(e){
-
-showAuthError(
-"loginError",
-authError(e.code)
-);
-
+showAuthError("loginError",authError(e.code));
 }
-
 };
 
 
 window.forgotPassword=async()=>{
-
-const email=
-$("loginEmail").value.trim();
+const email=$("loginEmail").value.trim();
 
 if(!email)
-return showAuthError(
-"loginError",
-"আগে Email লিখুন"
-);
+return showAuthError("loginError","আগে Email লিখুন");
 
 try{
-
-await sendPasswordResetEmail(
-auth,
-email
-);
-
-toast(
-"📧 Password reset email পাঠানো হয়েছে"
-);
-
+await sendPasswordResetEmail(auth,email);
+toast("📧 Password reset email পাঠানো হয়েছে");
 }catch(e){
-
-showAuthError(
-"loginError",
-authError(e.code)
-);
-
+showAuthError("loginError",authError(e.code));
 }
-
 };
 
 
 window.logout=()=>signOut(auth);
 
-
 window.showLogin=()=>{
-
 $("loginBox").classList.remove("hide");
 $("createBox").classList.add("hide");
-
 };
-
 
 window.showCreate=()=>{
-
 $("loginBox").classList.add("hide");
 $("createBox").classList.remove("hide");
-
 };
 
 
-/* =====================================================
-   AUTH STATE
-===================================================== */
+/* AUTH STATE */
 
-onAuthStateChanged(
-auth,
-async user=>{
+onAuthStateChanged(auth,async user=>{
 
 if(!user){
 
@@ -1219,7 +1106,6 @@ $("mainApp").classList.add("hide");
 cleanupListeners();
 
 return;
-
 }
 
 fxFirebase.user=user;
@@ -1246,52 +1132,34 @@ startBadgeListener();
 
 renderBadgeFeatures();
 
-}
-);
+});
 
 
-/* =====================================================
-   USER
-===================================================== */
+/* USER */
 
 async function loadUserData(){
 
 const u=fxFirebase.user;
-
 if(!u)return;
 
-const ref=doc(
-db,
-"users",
-u.uid
-);
+const ref=doc(db,"users",u.uid);
+const snap=await getDoc(ref);
 
-const snap=
-await getDoc(ref);
-
-let name=
-u.displayName||"FantasyXI User";
-
-let referralCode=
-makeReferralCode(u.uid);
+let name=u.displayName||"FantasyXI User";
+let referralCode=makeReferralCode(u.uid);
 
 if(snap.exists()){
 
 const d=snap.data()||{};
 
-name=
-d.userName||
-d.name||
-name;
+name=d.userName||d.name||name;
 
-userCoins=
-Number(
+userCoins=Number(
 d.coins??d.wallet??0
 );
 
 referralCode=
-d.referralCode||
-referralCode;
+d.referralCode||referralCode;
 
 if(!d.referralCode){
 
@@ -1329,24 +1197,18 @@ updatedAt:serverTimestamp()
 },
 {merge:true}
 );
-
 }
 
-updateWalletUI(
-name,
-userCoins
-);
+updateWalletUI(name,userCoins);
 
-$("myReferralCode").textContent=
-referralCode;
+$("myReferralCode").textContent=referralCode;
 
 }
 
 
 function updateWalletUI(name,coins){
 
-userCoins=
-Number(coins)||0;
+userCoins=Number(coins)||0;
 
 $("profileName").textContent=
 name||"FantasyXI User";
@@ -1357,21 +1219,13 @@ name||"FantasyXI User";
 $("userName").value=
 name||"";
 
-$("walletCoins").textContent=
-userCoins;
-
-$("homeCoins").textContent=
-userCoins;
-
-$("profileCoins").textContent=
-userCoins;
-
-$("settingsCoins").textContent=
-userCoins;
+$("walletCoins").textContent=userCoins;
+$("homeCoins").textContent=userCoins;
+$("profileCoins").textContent=userCoins;
+$("settingsCoins").textContent=userCoins;
 
 if($("requestWalletCoins"))
-$("requestWalletCoins").textContent=
-userCoins;
+$("requestWalletCoins").textContent=userCoins;
 
 }
 
@@ -1379,7 +1233,6 @@ userCoins;
 function startWalletListener(){
 
 const u=fxFirebase.user;
-
 if(!u)return;
 
 if(walletUnsubscribe)
@@ -1399,11 +1252,7 @@ d.userName||
 d.name||
 u.displayName||
 "FantasyXI User",
-Number(
-d.coins??
-d.wallet??
-0
-)
+Number(d.coins??d.wallet??0)
 );
 
 if($("myReferralCode"))
@@ -1412,10 +1261,7 @@ d.referralCode||
 makeReferralCode(u.uid);
 
 },
-e=>console.error(
-"wallet:",
-e
-)
+e=>console.error("wallet:",e)
 );
 
 }
@@ -1431,9 +1277,7 @@ badgeUnsubscribe,
 contestJoinUnsubscribe,
 walletUnsubscribe
 ].forEach(x=>{
-
 if(x)x();
-
 });
 
 matchUnsubscribe=null;
@@ -1446,9 +1290,7 @@ walletUnsubscribe=null;
 }
 
 
-/* =====================================================
-   MATCH
-===================================================== */
+/* MATCH */
 
 function normalizeStatus(m){
 
@@ -1456,69 +1298,32 @@ const s=String(
 m?.status||""
 ).trim().toLowerCase();
 
-if([
-"complete",
-"completed",
-"finished"
-].includes(s))
+if(["complete","completed","finished"].includes(s))
 return"finished";
 
-if([
-"live",
-"playing"
-].includes(s))
+if(["live","playing"].includes(s))
 return"live";
 
 return"upcoming";
-
 }
-
 
 function isLive(m){
-
 return normalizeStatus(m)==="live";
-
 }
-
 
 function isUpcoming(m){
-
 return normalizeStatus(m)==="upcoming";
-
 }
-
 
 function isFinished(m){
-
 return normalizeStatus(m)==="finished";
-
 }
-
 
 function matchTitle(m){
-
 return m?.name||
-(
-(m?.team1||"Team 1")+
-" vs "+
-(m?.team2||"Team 2")
-);
-
+((m?.team1||"Team 1")+" vs "+(m?.team2||"Team 2"));
 }
 
-
-function getMatch(id){
-
-return matches.find(
-m=>String(m.id)===String(id)
-);
-
-}
-
-
-/* =====================================================
-   MATCH SUBSCRIBE
-===================================================== */
 
 function subscribeMatches(){
 
@@ -1530,12 +1335,8 @@ onSnapshot(
 collection(db,"matches"),
 snap=>{
 
-matches=
-snap.docs.map(
-d=>({
-id:d.id,
-...d.data()
-})
+matches=snap.docs.map(
+d=>({id:d.id,...d.data()})
 );
 
 window.matchesReady=true;
@@ -1544,11 +1345,8 @@ renderMatches(currentMatchTab);
 renderLive();
 
 if(selectedMatch){
-
 renderLiveScore();
-
 loadContests(selectedMatch);
-
 }
 
 },
@@ -1559,21 +1357,15 @@ console.error(e);
 window.matchesReady=true;
 
 $("matchList").innerHTML=
-`
-<div class="card dangerText">
+`<div class="card dangerText">
 ❌ Matches load হয়নি।
-</div>
-`;
+</div>`;
 
 }
 );
 
 }
 
-
-/* =====================================================
-   MATCH LIST
-===================================================== */
 
 window.renderMatches=function(
 tab="upcoming",
@@ -1585,12 +1377,8 @@ currentMatchTab=tab;
 if(btn){
 
 document
-.querySelectorAll(
-"#matches .tabs button"
-)
-.forEach(x=>
-x.classList.remove("active")
-);
+.querySelectorAll("#matches .tabs button")
+.forEach(x=>x.classList.remove("active"));
 
 btn.classList.add("active");
 
@@ -1601,99 +1389,73 @@ const box=$("matchList");
 if(!window.matchesReady){
 
 box.innerHTML=
-`
-<div class="card">
+`<div class="card">
 🔄 Firebase থেকে Matches load হচ্ছে...
-</div>
-`;
+</div>`;
 
 return;
-
 }
 
-const arr=
-matches.filter(
+const arr=matches.filter(
 m=>normalizeStatus(m)===tab
 );
 
 if(!arr.length){
 
 box.innerHTML=
-`
-<div class="empty">
+`<div class="empty">
 📭 এই category-তে কোনো Match নেই।
-</div>
-`;
+</div>`;
 
 return;
-
 }
 
-box.innerHTML=
-arr.map(m=>{
+box.innerHTML=arr.map(m=>{
 
 const st=normalizeStatus(m);
 
 const action=
 st==="upcoming"
 ?
-`
-<button class="btn"
+`<button class="btn"
 onclick="openCreateForMatch('${esc(m.id)}')">
 Team →
-</button>
-`
+</button>`
 :
 st==="live"
 ?
-`
-<button class="btn"
+`<button class="btn"
 onclick="openLive('${esc(m.id)}')">
 Live →
-</button>
-`
+</button>`
 :
-`
-<button class="btn"
+`<button class="btn"
 onclick="openMatchLeaderboard('${esc(m.id)}')">
 Leaderboard →
-</button>
-`;
+</button>`;
 
 const info=
 st==="live"
 ?
-`
-<div class="small">
+`<div class="small">
 <span class="badge">LIVE</span>
 ${esc(m.score||"")}
 </div>
-
 <div class="small">
-${esc(m.over||"")}
-${esc(m.event||"")}
-</div>
-`
+${esc(m.over||"")}${esc(m.event||"")}
+</div>`
 :
 st==="upcoming"
 ?
-`
-<div class="small">
-🕒 ${esc(
-formatDate(
-m.startTime??
-m.startAt??
-m.matchTime
-)
-)}
-</div>
-`
+`<div class="small">
+🕒 ${esc(formatDate(
+m.startTime??m.startAt??m.matchTime
+))}
+</div>`
 :
-`
-<div class="small">
+`<div class="small">
 🏁 Result completed
-</div>
-`;
+</div>`;
 
 return`
 <div class="match">
@@ -1712,61 +1474,26 @@ ${action}
 
 </div>
 
-
 ${
 st==="upcoming"
 ?
-`
-<div class="row"
-style="margin-top:5px;gap:5px">
-
-<button
-class="btn dark grow"
+`<div class="row" style="margin-top:5px;gap:5px">
+<button class="btn dark grow"
 onclick="openContests('${esc(m.id)}')">
-
 🏆 Contests
-
 </button>
-
-
-<button
-class="btn dark grow"
+<button class="btn dark grow"
 onclick="openMatchLeaderboard('${esc(m.id)}')">
-
 🏆 Leaderboard
-
 </button>
-
-</div>
-`
-:
-st==="finished"
+</div>`
+: st==="finished"
 ?
-`
-<div class="row"
-style="margin-top:5px;gap:5px">
-
-<button
-class="btn dark grow"
-onclick="openContests('${esc(m.id)}')">
-
-🏆 Contests
-
-</button>
-
-<button
-class="btn dark grow"
+`<button class="btn dark full"
 onclick="openMatchLeaderboard('${esc(m.id)}')">
-
-🏆 Overall Leaderboard
-
-</button>
-
-</div>
-`
-:
-""
-
+🏆 Leaderboard
+</button>`
+: ""
 }
 
 </div>
@@ -1782,10 +1509,7 @@ function formatDate(v){
 if(v==null||v==="")
 return"Start time not set";
 
-if(
-typeof v==="object"&&
-v.seconds
-)
+if(typeof v==="object"&&v.seconds)
 return new Date(
 Number(v.seconds)*1000
 ).toLocaleString("bn-BD");
@@ -1793,28 +1517,60 @@ Number(v.seconds)*1000
 const n=Number(v);
 
 if(Number.isFinite(n))
-return new Date(n)
-.toLocaleString("bn-BD");
+return new Date(n).toLocaleString("bn-BD");
 
 return String(v);
+}
+
+
+function getMatch(id){
+
+return matches.find(
+m=>String(m.id)===String(id)
+);
 
 }
 
 
-/* =====================================================
-   PLAYER LOADER
-   IMPORTANT:
-   Leaderboard-এর জন্যও player load হবে।
-===================================================== */
+/* CREATE / EDIT TEAM */
 
-async function loadPlayersForMatch(
-matchId
-){
+window.openCreateForMatch=async id=>{
+
+const m=getMatch(id);
+
+if(!m)
+return toast("❌ Match পাওয়া যায়নি");
+
+if(!isUpcoming(m))
+return toast("🔒 এই Match এখন Team তৈরির জন্য বন্ধ");
+
+selectedMatch=id;
+editingTeamId=null; 
+chosen=[];
+cap=null;
+vc=null;
+$("teamName").value="";
+$("createTeamTitle").textContent="👥 Create Team";
+
+await loadMatchPlayers(id);
+
+go("create");
+
+};
+
+
+async function loadMatchPlayers(matchId){
+
+players=[];
+
+$("players").innerHTML=
+`<div class="card">
+🔄 Firebase থেকে Players load হচ্ছে...
+</div>`;
 
 try{
 
-const snap=
-await getDocs(
+const snap=await getDocs(
 collection(db,"players")
 );
 
@@ -1829,49 +1585,35 @@ x.matchId??
 x.match??
 "";
 
-if(
-String(mid)!==
-String(matchId)
-)
+if(String(mid)!==String(matchId))
 return;
 
 const raw=
-String(
-x.role||""
-)
+String(x.role||"")
 .trim()
 .toUpperCase();
 
 let r=raw;
 
-if(
-raw==="BAT"||
-raw==="BATTER"
-)
+if(raw==="BAT"||raw==="BATTER")
 r="BAT";
 
-else if([
-"AR",
-"ALLROUNDER",
-"ALL-ROUNDER",
-"ALL ROUNDER"
-].includes(raw))
+else if(
+["AR","ALLROUNDER","ALL-ROUNDER","ALL ROUNDER"]
+.includes(raw)
+)
 r="AR";
 
-else if([
-"WK",
-"WICKETKEEPER",
-"WICKET-KEEPER",
-"WICKET KEEPER"
-].includes(raw))
+else if(
+["WK","WICKETKEEPER","WICKET-KEEPER","WICKET KEEPER"]
+.includes(raw)
+)
 r="WK";
 
-else if([
-"BOWL",
-"BOWLER"
-].includes(raw))
+else if(
+["BOWL","BOWLER"].includes(raw)
+)
 r="BOWL";
-
 
 list.push({
 
@@ -1891,8 +1633,7 @@ x.avatar||
 
 role:r,
 
-price:
-Number(x.price??0)
+price:Number(x.price??0)
 
 });
 
@@ -1900,123 +1641,43 @@ Number(x.price??0)
 
 players=list;
 
-return true;
-
-}catch(e){
-
-console.error(
-"loadPlayersForMatch:",
-e
-);
-
-return false;
-
+if(!editingTeamId) {
+ chosen=[];
+ cap=null;
+ vc=null;
 }
-
-}
-
-
-/* =====================================================
-   CREATE / EDIT TEAM
-===================================================== */
-
-window.openCreateForMatch=async id=>{
-
-const m=getMatch(id);
-
-if(!m)
-return toast(
-"❌ Match পাওয়া যায়নি"
-);
-
-if(!isUpcoming(m))
-return toast(
-"🔒 এই Match এখন Team তৈরির জন্য বন্ধ"
-);
-
-selectedMatch=id;
-editingTeamId=null;
-chosen=[];
-cap=null;
-vc=null;
-
-$("teamName").value="";
-
-$("createTeamTitle").textContent=
-"👥 Create Team";
-
-await loadMatchPlayers(id);
-
-go("create");
-
-};
-
-
-async function loadMatchPlayers(
-matchId
-){
-
-players=[];
-
-$("players").innerHTML=
-`
-<div class="card">
-🔄 Firebase থেকে Players load হচ্ছে...
-</div>
-`;
-
-const success=
-await loadPlayersForMatch(matchId);
-
-if(!success){
-
-$("players").innerHTML=
-`
-<div class="card dangerText">
-❌ Player load হয়নি।
-</div>
-`;
-
-return false;
-
-}
-
-if(!editingTeamId){
-
-chosen=[];
-cap=null;
-vc=null;
-
-}
-
 role="ALL";
 
 renderPlayers();
 
 $("selectedMatchName").textContent=
-"🏏 "+matchTitle(
-getMatch(matchId)||{}
-);
+"🏏 "+matchTitle(getMatch(matchId)||{});
 
 if(!players.length){
 
 $("players").innerHTML=
-`
-<div class="empty">
+`<div class="empty">
 ❌ এই Match-এর কোনো Player পাওয়া যায়নি।
-</div>
-`;
+</div>`;
 
 return false;
-
 }
 
-toast(
-"✅ "+players.length+
-" জন Player পাওয়া গেছে"
-);
+toast("✅ "+players.length+" জন Player পাওয়া গেছে");
 
 return true;
+
+}catch(e){
+
+console.error(e);
+
+$("players").innerHTML=
+`<div class="card dangerText">
+❌ Player load হয়নি।
+</div>`;
+
+return false;
+}
 
 }
 
@@ -2027,9 +1688,7 @@ role=r;
 
 document
 .querySelectorAll(".filters button")
-.forEach(x=>
-x.classList.remove("active")
-);
+.forEach(x=>x.classList.remove("active"));
 
 b.classList.add("active");
 
@@ -2044,26 +1703,21 @@ const box=$("players");
 
 if(!box)return;
 
-const list=
-players.filter(
+const list=players.filter(
 p=>role==="ALL"||p.role===role
 );
 
 if(!list.length){
 
 box.innerHTML=
-`
-<div class="empty">
+`<div class="empty">
 এই role-এ কোনো Player নেই।
-</div>
-`;
+</div>`;
 
 return;
-
 }
 
-box.innerHTML=
-list.map(p=>{
+box.innerHTML=list.map(p=>{
 
 const selected=
 chosen.includes(p.id);
@@ -2098,33 +1752,23 @@ ${selected?"✓":"+"}
 
 }).join("");
 
-$("cnt").textContent=
-chosen.length;
+$("cnt").textContent=chosen.length;
 
-const spent=
-chosen.reduce(
+const spent=chosen.reduce(
 (s,id)=>
 s+
-(
-players.find(
-p=>p.id===id
-)?.price||0
-),
+(players.find(p=>p.id===id)?.price||0),
 0
 );
 
-$("credit").textContent=
-100-spent;
+$("credit").textContent=100-spent;
 
 }
 
 
 window.togglePlayer=id=>{
 
-const i=
-chosen.indexOf(
-Number(id)
-);
+const i=chosen.indexOf(Number(id));
 
 if(i>=0){
 
@@ -2138,38 +1782,26 @@ vc=null;
 
 }else{
 
-const p=
-players.find(
+const p=players.find(
 x=>x.id===Number(id)
 );
 
 if(!p)return;
 
-const spent=
-chosen.reduce(
+const spent=chosen.reduce(
 (s,x)=>
 s+
-(
-players.find(
-q=>q.id===x
-)?.price||0
-),
+(players.find(q=>q.id===x)?.price||0),
 0
 );
 
 if(chosen.length>=11)
-return toast(
-"সর্বোচ্চ ১১ জন"
-);
+return toast("সর্বোচ্চ ১১ জন");
 
 if(spent+p.price>100)
-return toast(
-"100 Credits-এর বেশি"
-);
+return toast("100 Credits-এর বেশি");
 
-chosen.push(
-Number(id)
-);
+chosen.push(Number(id));
 
 }
 
@@ -2178,9 +1810,7 @@ renderPlayers();
 };
 
 
-/* =====================================================
-   CAPTAIN
-===================================================== */
+/* CAPTAIN */
 
 window.goCV=()=>{
 
@@ -2188,21 +1818,14 @@ const teamName=
 $("teamName").value.trim();
 
 if(!teamName)
-return toast(
-"⚠️ আগে Team Name দিন"
-);
+return toast("⚠️ আগে Team Name দিন");
 
 if(chosen.length!==11)
-return toast(
-"⚠️ আগে ১১ জন Player নির্বাচন করুন"
-);
+return toast("⚠️ আগে ১১ জন Player নির্বাচন করুন");
 
 const c=r=>
 chosen.filter(
-id=>
-players.find(
-p=>p.id===id
-)?.role===r
+id=>players.find(p=>p.id===id)?.role===r
 ).length;
 
 if(
@@ -2216,9 +1839,7 @@ return toast(
 );
 
 if(!selectedMatch)
-return toast(
-"❌ Match selected নেই"
-);
+return toast("❌ Match selected নেই");
 
 renderCV();
 
@@ -2234,21 +1855,18 @@ const box=$("cvList");
 if(chosen.length!==11){
 
 box.innerHTML=
-`
-<div class="card">
+`<div class="card">
 ⚠️ আগে ১১ জন Player নির্বাচন করুন
-</div>
-`;
+</div>`;
 
 return;
-
 }
 
 box.innerHTML=
+
 chosen.map(id=>{
 
-const p=
-players.find(
+const p=players.find(
 x=>x.id===id
 );
 
@@ -2297,7 +1915,6 @@ ${Number(vc)===id?"✓ VC":"VC"}
 
 👑 Captain:
 <b class="green">
-
 ${
 esc(
 cap
@@ -2309,14 +1926,12 @@ x=>x.id===Number(cap)
 "নির্বাচন করুন"
 )
 }
-
 </b>
 
 <br>
 
 ⭐ Vice-Captain:
 <b class="gold">
-
 ${
 esc(
 vc
@@ -2328,7 +1943,6 @@ x=>x.id===Number(vc)
 "নির্বাচন করুন"
 )
 }
-
 </b>
 
 </div>
@@ -2377,36 +1991,26 @@ renderCV();
 };
 
 
-/* =====================================================
-   SAVE TEAM
-===================================================== */
+/* SAVE / UPDATE TEAM */
 
 window.saveTeam=async()=>{
 
 const m=getMatch(selectedMatch);
 
 if(!m)
-return toast(
-"❌ Match পাওয়া যায়নি"
-);
+return toast("❌ Match পাওয়া যায়নি");
 
 if(!isUpcoming(m))
-return toast(
-"🔒 Match Live/Finished — Team বন্ধ"
-);
+return toast("🔒 Match Live/Finished — Team বন্ধ");
 
 const teamName=
 $("teamName").value.trim();
 
 if(!teamName)
-return toast(
-"⚠️ Team Name দিন"
-);
+return toast("⚠️ Team Name দিন");
 
 if(chosen.length!==11)
-return toast(
-"১১ জন Player নির্বাচন করুন"
-);
+return toast("১১ জন Player নির্বাচন করুন");
 
 if(cap===null||vc===null)
 return toast(
@@ -2414,16 +2018,12 @@ return toast(
 );
 
 if(Number(cap)===Number(vc))
-return toast(
-"C এবং VC আলাদা হতে হবে"
-);
+return toast("C এবং VC আলাদা হতে হবে");
 
 const u=fxFirebase.user;
 
 if(!u)
-return toast(
-"❌ Login প্রয়োজন"
-);
+return toast("❌ Login প্রয়োজন");
 
 
 const team={
@@ -2441,9 +2041,7 @@ matchId:selectedMatch,
 players:
 chosen
 .map(id=>
-players.find(
-p=>p.id===id
-)?.firebaseId
+players.find(p=>p.id===id)?.firebaseId
 )
 .filter(Boolean),
 
@@ -2452,9 +2050,7 @@ playerIds:[...chosen],
 playerNames:
 chosen
 .map(id=>
-players.find(
-p=>p.id===id
-)?.name
+players.find(p=>p.id===id)?.name
 )
 .filter(Boolean),
 
@@ -2478,40 +2074,20 @@ players.find(
 p=>p.id===Number(vc)
 )?.name||"",
 
-updatedAt:
-serverTimestamp()
+updatedAt:serverTimestamp()
 
 };
 
 
 try{
 
-if(editingTeamId){
-
-await setDoc(
-doc(db,"teams",editingTeamId),
-team,
-{merge:true}
-);
-
-toast(
-"✅ Team Updated"
-);
-
-}else{
-
-team.createdAt=
-serverTimestamp();
-
-await addDoc(
-collection(db,"teams"),
-team
-);
-
-toast(
-"✅ Team Firebase-এ Saved"
-);
-
+if(editingTeamId) {
+  await setDoc(doc(db, "teams", editingTeamId), team, { merge: true });
+  toast("✅ Team Updated");
+} else {
+  team.createdAt = serverTimestamp();
+  await addDoc(collection(db, "teams"), team);
+  toast("✅ Team Firebase-এ Saved");
 }
 
 $("savedInfo").textContent=
@@ -2537,119 +2113,57 @@ toast(
 };
 
 
-/* =====================================================
-   EDIT TEAM
-===================================================== */
+/* EDIT TEAM ACTION */
 
-window.editTeam=async teamId=>{
+window.editTeam=async(teamId)=>{
 
-const t=
-teams.find(
-x=>String(x.id)===String(teamId)
-);
+const t=teams.find(x=>String(x.id)===String(teamId));
 
 if(!t)
-return toast(
-"❌ Team পাওয়া যায়নি"
-);
+return toast("❌ Team পাওয়া যায়নি");
 
-const m=
-getMatch(
-t.matchId||t.match
-);
+const m=getMatch(t.matchId||t.match);
 
 if(!m)
-return toast(
-"❌ Match পাওয়া যায়নি"
-);
+return toast("❌ Match পাওয়া যায়নি");
 
 if(!isUpcoming(m))
-return toast(
-"🔒 Match এখন Live বা Finished, Edit করা যাবে না"
-);
+return toast("🔒 Match এখন Live বা Finished, Edit করা যাবে না");
 
 editingTeamId=t.id;
+selectedMatch=t.matchId||t.match;
 
-selectedMatch=
-t.matchId||t.match;
+$("teamName").value=t.teamName||t.name||"";
+$("createTeamTitle").textContent="✏️ Edit Team";
 
-$("teamName").value=
-t.teamName||t.name||"";
-
-$("createTeamTitle").textContent=
-"✏️ Edit Team";
-
-const success=
-await loadMatchPlayers(
-selectedMatch
-);
+const success = await loadMatchPlayers(selectedMatch);
 
 if(success){
 
-if(
-t.playerIds&&
-t.playerIds.length===11
-){
+  if(t.playerIds && t.playerIds.length === 11) {
+    chosen = [...t.playerIds];
+  } else if(t.players && t.players.length === 11) {
+    chosen = t.players.map(fid => {
+      const p = players.find(x => String(x.firebaseId) === String(fid));
+      return p ? p.id : null;
+    }).filter(Boolean);
+  }
 
-chosen=[...t.playerIds];
+  const cPlayer = players.find(x => String(x.firebaseId) === String(t.captain) || x.name === t.captainName);
+  if(cPlayer) cap = cPlayer.id;
 
-}else if(
-t.players&&
-t.players.length===11
-){
+  const vcPlayer = players.find(x => String(x.firebaseId) === String(t.viceCaptain) || x.name === t.viceCaptainName);
+  if(vcPlayer) vc = vcPlayer.id;
 
-chosen=
-t.players.map(fid=>{
-
-const p=
-players.find(
-x=>
-String(x.firebaseId)===
-String(fid)
-);
-
-return p?p.id:null;
-
-}).filter(Boolean);
-
-}
-
-const cPlayer=
-players.find(
-x=>
-String(x.firebaseId)===
-String(t.captain)
-||
-x.name===t.captainName
-);
-
-if(cPlayer)
-cap=cPlayer.id;
-
-const vcPlayer=
-players.find(
-x=>
-String(x.firebaseId)===
-String(t.viceCaptain)
-||
-x.name===t.viceCaptainName
-);
-
-if(vcPlayer)
-vc=vcPlayer.id;
-
-renderPlayers();
-
-go("create");
-
+  renderPlayers();
+  go("create");
+  
 }
 
 };
 
 
-/* =====================================================
-   TEAMS
-===================================================== */
+/* TEAMS */
 
 function subscribeTeams(){
 
@@ -2665,8 +2179,7 @@ onSnapshot(
 collection(db,"teams"),
 snap=>{
 
-teams=
-snap.docs
+teams=snap.docs
 .map(d=>({
 id:d.id,
 ...d.data()
@@ -2680,10 +2193,7 @@ String(u.uid)
 renderTeams();
 
 },
-e=>console.error(
-"teams:",
-e
-)
+e=>console.error("teams:",e)
 );
 
 }
@@ -2698,21 +2208,17 @@ if(!box)return;
 if(!teams.length){
 
 box.innerHTML=
-`
-<div class="empty">
+`<div class="empty">
 এখনো কোনো Team তৈরি হয়নি।
-</div>
-`;
+</div>`;
 
 return;
-
 }
 
 box.innerHTML=
 teams.map((t,i)=>{
 
-const m=
-getMatch(
+const m=getMatch(
 t.matchId||t.match
 );
 
@@ -2724,10 +2230,7 @@ t.teamName||
 t.name||
 "Team "+(i+1);
 
-const canEdit=
-m?
-isUpcoming(m):
-false;
+const canEdit = m ? isUpcoming(m) : false;
 
 return`
 
@@ -2740,7 +2243,6 @@ return`
 <b>${esc(teamName)}</b>
 
 <div class="small">
-
 ${esc(
 m
 ?
@@ -2748,17 +2250,12 @@ matchTitle(m)
 :
 t.matchId||"Match"
 )}
-
 </div>
 
 <div class="small">
-
 👑 ${esc(t.captainName||"-")}
-
 <br>
-
 ⭐ ${esc(t.viceCaptainName||"-")}
-
 </div>
 
 </div>
@@ -2772,20 +2269,8 @@ ${names.length||11} Players
 ${
 canEdit
 ?
-`
-<br>
-
-<button
-class="btn dark"
-style="margin-top:6px;font-size:8px;"
-onclick="editTeam('${esc(t.id)}')">
-
-✏️ Edit Team
-
-</button>
-`
-:
-""
+`<br><button class="btn dark" style="margin-top:6px;font-size:8px;" onclick="editTeam('${esc(t.id)}')">✏️ Edit Team</button>`
+: ""
 }
 
 </div>
@@ -2802,100 +2287,44 @@ onclick="editTeam('${esc(t.id)}')">
 
 window.createAnother=async()=>{
 
-const m=
-matches.find(isUpcoming);
+const m=matches.find(isUpcoming);
 
 if(!m)
-return toast(
-"কোনো Upcoming Match নেই"
-);
+return toast("কোনো Upcoming Match নেই");
 
-await openCreateForMatch(
-m.id
-);
+await openCreateForMatch(m.id);
 
 };
 
 
-/* =====================================================
-   CONTEST
-===================================================== */
+/* CONTEST */
 
 function contestMoney(c){
-
-const entry=
-Number(
-c.entryCoins??
-c.entry??
-c.entryFee??
-c.entryPrice??
-0
-)||0;
-
-const prize=
-Number(
-c.totalPrizeCoins??
-c.prizeCoins??
-c.totalPrize??
-c.prize??
-c.prizeMoney??
-0
-)||0;
-
-return{
-entry,
-prize
-};
-
+const entry=Number(c.entryCoins??c.entry??c.entryFee??c.entryPrice??0)||0;
+const prize=Number(c.totalPrizeCoins??c.prizeCoins??c.totalPrize??c.prize??c.prizeMoney??0)||0;
+return{entry,prize};
 }
-
 
 function contestStatus(c){
 
-const s=
-String(
-c.status??"active"
-)
-.trim()
-.toLowerCase();
-
 return[
-"closed",
-"inactive",
-"disabled",
-"finished"
-].includes(s)
-?
-"closed"
-:
-"active";
+"closed","inactive","disabled","finished"
+].includes(
+String(c.status??"active").trim().toLowerCase()
+) ? "closed" : "active";
 
 }
 
 
-/* =====================================================
-   CONTEST LIST
-   UPCOMING + FINISHED
-===================================================== */
-
 window.openContests=async matchId=>{
 
-const m=
-getMatch(matchId);
+const m=getMatch(matchId);
 
 if(!m)
-return toast(
-"❌ Match পাওয়া যায়নি"
-);
+return toast("❌ Match পাওয়া যায়নি");
 
-/*
-   LIVE Match-এর Contest page আলাদা।
-   Live contest leaderboard live page থেকেই খুলবে।
-*/
-if(isLive(m))
-return toast(
-"🔴 Live Match-এর Contest Live section থেকে দেখুন"
-);
+if(!isUpcoming(m))
+return toast("🔒 এই Match-এর Contest এখন বন্ধ");
 
 selectedMatch=matchId;
 
@@ -2916,11 +2345,9 @@ const box=$("contestList");
 if(!box)return;
 
 box.innerHTML=
-`
-<div class="card">
+`<div class="card">
 🔄 Firebase থেকে Contest load হচ্ছে...
-</div>
-`;
+</div>`;
 
 try{
 
@@ -2936,21 +2363,14 @@ snap.forEach(d=>{
 const x=d.data()||{};
 
 if(
-String(
-x.matchId??
-x.match??
-x.matchID??
-""
-)===
+String(x.matchId??x.match??x.matchID??"")
+===
 String(matchId)
-){
-
+)
 contests.push({
 id:d.id,
 ...x
 });
-
-}
 
 });
 
@@ -2963,29 +2383,14 @@ subscribeContestJoins(matchId);
 console.error(e);
 
 box.innerHTML=
-`
-<div class="card dangerText">
+`<div class="card dangerText">
 ❌ Contest load হয়নি।
-</div>
-`;
+</div>`;
 
 }
 
 }
 
-
-/*
-   IMPORTANT CHANGE:
-
-   Upcoming:
-   Active Contest + Join + Leaderboard
-
-   Finished:
-   Closed/Finished Contest + Final Leaderboard
-
-   Live:
-   Existing Live section
-*/
 
 function renderContests(){
 
@@ -2993,97 +2398,34 @@ const box=$("contestList");
 
 if(!box)return;
 
-const m=
-getMatch(selectedMatch);
-
-if(!m){
-
-box.innerHTML=
-`
-<div class="empty">
-❌ Match পাওয়া যায়নি।
-</div>
-`;
-
-return;
-
-}
-
-let list=[];
-
-if(isUpcoming(m)){
-
-list=
+const active=
 contests.filter(
-c=>
-contestStatus(c)==="active"
+c=>contestStatus(c)==="active"
 );
 
-}else if(isFinished(m)){
-
-/*
-   Finished contest hide করা যাবে না।
-   Final leaderboard-এর জন্য সব contest দেখানো হবে।
-*/
-list=[...contests];
-
-}else{
-
-list=[];
-
-}
-
-
-if(!list.length){
+if(!active.length){
 
 box.innerHTML=
-`
-<div class="empty">
-
-${
-isFinished(m)
-?
-"📭 এই Finished Match-এর কোনো Contest পাওয়া যায়নি।"
-:
-"📭 এই Match-এর জন্য কোনো Active Contest নেই।"
-}
-
-</div>
-`;
+`<div class="empty">
+📭 এই Match-এর জন্য কোনো Contest নেই।
+</div>`;
 
 return;
-
 }
 
-
 box.innerHTML=
-list.map(c=>{
+active.map(c=>{
 
-const{
-entry,
-prize
-}=
-contestMoney(c);
+const{entry,prize}=contestMoney(c);
 
 const name=
 c.name||
-c.contestName||
-c.title||
 "Contest";
 
 const joined=
 joinedContestIds.includes(
 String(c.id)
 );
-
-const closed=
-contestStatus(c)==="closed";
-
-
-/*
-   UPCOMING BUTTONS
-*/
-if(isUpcoming(m)){
 
 return`
 
@@ -3113,97 +2455,16 @@ ${esc(name)}
 
 </div>
 
-</div>
-
-
-<div class="row"
-style="margin-top:7px;gap:5px">
-
 <button
-class="btn contestJoin grow ${joined?"joined":""}"
+class="btn contestJoin ${joined?"joined":""}"
 onclick="joinContest('${esc(c.id)}')"
-${joined||closed?"disabled":""}>
+${joined?"disabled":""}>
 
-${
-closed
-?
-"🔒 Closed"
-:
-joined
-?
-"✓ Joined"
-:
-"Join"
-}
-
-</button>
-
-
-<button
-class="btn dark grow"
-onclick="openContestLeaderboard('${esc(c.id)}')">
-
-📊 Leaderboard
+${joined?"Joined":"Join"}
 
 </button>
 
 </div>
-
-</div>
-
-`;
-
-}
-
-
-/*
-   FINISHED BUTTON
-*/
-return`
-
-<div class="contest">
-
-<div class="contestTop">
-
-<div class="contestIcon">
-🏁
-</div>
-
-<div class="grow">
-
-<div class="contestTitle">
-${esc(name)}
-</div>
-
-<div class="contestLine">
-💰 Entry:
-<b>${entry}</b> Coins
-</div>
-
-<div class="contestLine">
-🏆 Prize:
-<b>${prize}</b> Coins
-</div>
-
-<div class="contestLine"
-style="color:#ffd65a">
-
-🏁 Match Finished
-
-</div>
-
-</div>
-
-</div>
-
-
-<button
-class="btn full"
-onclick="openContestLeaderboard('${esc(c.id)}')">
-
-🏆 Final Leaderboard
-
-</button>
 
 </div>
 
@@ -3213,10 +2474,6 @@ onclick="openContestLeaderboard('${esc(c.id)}')">
 
 }
 
-
-/* =====================================================
-   CONTEST JOIN LISTENER
-===================================================== */
 
 function subscribeContestJoins(matchId){
 
@@ -3242,90 +2499,55 @@ if(
 String(x.userId)===
 String(u.uid)&&
 String(
-x.matchId??
-x.match??
-""
+x.matchId??x.match??""
 )===
 String(matchId)
-){
-
-joinedContestIds.push(
-String(
-x.contestId||
-d.id
 )
+joinedContestIds.push(
+String(x.contestId||d.id)
 );
-
-}
 
 });
 
 renderContests();
 
 },
-e=>
-console.error(
-"contestEntries:",
-e
-)
+e=>console.error("contestEntries:",e)
 );
 
 }
 
 
-/* =====================================================
-   JOIN CONTEST
-===================================================== */
+/* JOIN CONTEST */
 
 window.joinContest=async contestId=>{
 
 const u=fxFirebase.user;
 
 if(!u)
-return toast(
-"❌ Login প্রয়োজন"
-);
+return toast("❌ Login প্রয়োজন");
 
 const c=
 contests.find(
-x=>
-String(x.id)===
-String(contestId)
+x=>String(x.id)===String(contestId)
 );
 
 if(!c)
-return toast(
-"❌ Contest পাওয়া যায়নি"
-);
+return toast("❌ Contest পাওয়া যায়নি");
 
-if(
-contestStatus(c)!=="active"
-)
-return toast(
-"🔒 Contest বন্ধ"
-);
+if(contestStatus(c)!=="active")
+return toast("🔒 Contest বন্ধ");
 
-const m=
-getMatch(selectedMatch);
+const m=getMatch(selectedMatch);
 
 if(!m)
-return toast(
-"❌ Match পাওয়া যায়নি"
-);
+return toast("❌ Match পাওয়া যায়নি");
 
 if(!isUpcoming(m))
-return toast(
-"🔒 Match Live হয়ে গেছে"
-);
+return toast("🔒 Match Live হয়ে গেছে");
 
-if(
-joinedContestIds.includes(
-String(contestId)
-)
-)
-return toast(
-"✅ আপনি ইতিমধ্যে Join করেছেন"
-);
+if(joinedContestIds.includes(String(contestId)))
+return toast("✅ আপনি ইতিমধ্যে Join করেছেন");
 
 
 const myTeam=
@@ -3343,23 +2565,13 @@ return toast(
 );
 
 
-const{
-entry,
-prize
-}=
-contestMoney(c);
+const{entry,prize}=contestMoney(c);
 
 const contestName=
-c.name||
-c.contestName||
-"Contest";
+c.name||"Contest";
 
 const userRef=
-doc(
-db,
-"users",
-u.uid
-);
+doc(db,"users",u.uid);
 
 
 try{
@@ -3370,14 +2582,10 @@ db,
 async transaction=>{
 
 const userSnap=
-await transaction.get(
-userRef
-);
+await transaction.get(userRef);
 
 if(!userSnap.exists())
-throw new Error(
-"USER_NOT_FOUND"
-);
+throw new Error("USER_NOT_FOUND");
 
 const userData=
 userSnap.data()||{};
@@ -3395,9 +2603,7 @@ throw new Error(
 );
 
 const entryRef=
-doc(
-collection(db,"contestEntries")
-);
+doc(collection(db,"contestEntries"));
 
 transaction.update(
 userRef,
@@ -3414,31 +2620,22 @@ contestId:String(contestId),
 contestName,
 matchId:String(selectedMatch),
 matchName:matchTitle(m),
-
 teamId:myTeam.id,
-
 teamName:
 myTeam.teamName||
 myTeam.name||
 "Team",
-
 userId:u.uid,
-
 userName:
 userData.userName||
 u.displayName||
 "FantasyXI User",
-
 email:u.email||"",
-
 entry,
 prize,
-
 status:"joined",
-
 createdAt:serverTimestamp(),
 updatedAt:serverTimestamp()
-
 }
 );
 
@@ -3468,18 +2665,12 @@ toast(
 
 console.error(e);
 
-if(
-e.message===
-"INSUFFICIENT_COINS"
-)
+if(e.message==="INSUFFICIENT_COINS")
 return toast(
 `❌ ${entry} Coins প্রয়োজন • আপনার পর্যাপ্ত Coins নেই`
 );
 
-if(
-e.message===
-"USER_NOT_FOUND"
-)
+if(e.message==="USER_NOT_FOUND")
 return toast(
 "❌ User Wallet পাওয়া যায়নি"
 );
@@ -3493,9 +2684,7 @@ toast(
 };
 
 
-/* =====================================================
-   PLAYER STATS
-===================================================== */
+/* PLAYER STATS */
 
 function subscribePlayerStats(matchId){
 
@@ -3558,8 +2747,7 @@ renderPoints();
 renderLeaderboard();
 
 },
-e=>
-console.error(
+e=>console.error(
 "playerStats:",
 e
 )
@@ -3568,10 +2756,7 @@ e
 }
 
 
-/* =====================================================
-   POINT CALCULATION
-   LIVE-এর আগের logic একই রাখা হয়েছে
-===================================================== */
+/* POINT CALCULATION */
 
 function calculatePoints(s){
 
@@ -3596,19 +2781,16 @@ s.wkts||
 
 function statByPlayerId(playerId){
 
-if(!playerId)return{};
+if(!playerId)
+return{};
 
 return playerStats[
 String(playerId)
 ]||{};
-
 }
 
 
-/* =====================================================
-   MULTIPLIER
-   LIVE-এর আগের logic একই
-===================================================== */
+/* TEAM POINT */
 
 function playerMultiplier(
 playerId,
@@ -3639,27 +2821,17 @@ return 1;
 }
 
 
-/* =====================================================
-   TEAM PLAYER OBJECTS
-===================================================== */
-
 function getTeamPlayerObjects(t){
 
-const ids=
-t.playerIds||[];
-
-const fids=
-t.players||[];
-
-const names=
-t.playerNames||[];
+const ids=t.playerIds||[];
+const fids=t.players||[];
+const names=t.playerNames||[];
 
 return ids.map((id,index)=>{
 
 const p=
 players.find(
-x=>Number(x.id)===
-Number(id)
+x=>Number(x.id)===Number(id)
 );
 
 const firebaseId=
@@ -3680,9 +2852,7 @@ const stats=
 statByPlayerId(firebaseId);
 
 const fallbackStats=
-playerStats[
-String(playerName)
-]||{};
+playerStats[String(playerName)]||{};
 
 const finalStats=
 Object.keys(stats).length
@@ -3692,9 +2862,7 @@ stats
 fallbackStats;
 
 const base=
-calculatePoints(
-finalStats
-);
+calculatePoints(finalStats);
 
 const mul=
 playerMultiplier(
@@ -3704,34 +2872,20 @@ t
 );
 
 return{
-
 id,
-
 firebaseId,
-
 name:playerName,
-
 av:avatar,
-
 stats:finalStats,
-
 base,
-
 multiplier:mul,
-
 points:base*mul
-
 };
 
 });
 
 }
 
-
-/* =====================================================
-   TEAM POINT
-   LIVE-এর মূল logic একই
-===================================================== */
 
 function teamPoints(t){
 
@@ -3758,15 +2912,13 @@ t.playerNames
 :
 [];
 
-
 if(ids.length){
 
 ids.forEach((id,index)=>{
 
 const p=
 players.find(
-x=>Number(x.id)===
-Number(id)
+x=>Number(x.id)===Number(id)
 );
 
 const pid=
@@ -3783,9 +2935,7 @@ const stats=
 statByPlayerId(pid);
 
 const fallback=
-playerStats[
-String(pname)
-]||{};
+playerStats[String(pname)]||{};
 
 const s=
 Object.keys(stats).length
@@ -3804,15 +2954,13 @@ pname,
 t
 );
 
-total+=
-base*mul;
+total+=base*mul;
 
 });
 
 }else{
 
-fids.forEach(
-(pid,index)=>{
+fids.forEach((pid,index)=>{
 
 const pname=
 names[index]||
@@ -3822,9 +2970,7 @@ const s=
 statByPlayerId(pid);
 
 const fallback=
-playerStats[
-String(pname)
-]||{};
+playerStats[String(pname)]||{};
 
 const final=
 Object.keys(s).length
@@ -3843,11 +2989,9 @@ pname,
 t
 );
 
-total+=
-base*mul;
+total+=base*mul;
 
-}
-);
+});
 
 }
 
@@ -3857,26 +3001,17 @@ total.toFixed(1)
 
 }
 
-
-/* =====================================================
-   LIVE
-   EXISTING BEHAVIOUR
-===================================================== */
+/* LIVE */
 
 window.openLive=id=>{
 
-const m=
-getMatch(id);
+const m=getMatch(id);
 
 if(!m)
-return toast(
-"❌ Match পাওয়া যায়নি"
-);
+return toast("❌ Match পাওয়া যায়নি");
 
 if(!isLive(m))
-return toast(
-"🔒 Match এখন Live নয়"
-);
+return toast("🔒 Match এখন Live নয়");
 
 selectedMatch=id;
 
@@ -3897,8 +3032,7 @@ const b=$("liveList");
 
 if(!b)return;
 
-const arr=
-matches.filter(isLive);
+const arr=matches.filter(isLive);
 
 b.innerHTML=
 arr.length
@@ -3936,35 +3070,27 @@ Live Score →
 
 `).join("")
 :
-`
-<div class="empty">
+`<div class="empty">
 এখন কোনো Match Live নেই।
-</div>
-`;
+</div>`;
 
 }
 
 
-async function loadLiveContests(
-matchId
-){
+async function loadLiveContests(matchId){
 
-const box=
-$("liveContestList");
+const box=$("liveContestList");
 
 if(!box)return;
 
 box.innerHTML=
-`
-<div class="card">
+`<div class="card">
 🔄 Contest load হচ্ছে...
-</div>
-`;
+</div>`;
 
 try{
 
-const snap=
-await getDocs(
+const snap=await getDocs(
 collection(db,"contests")
 );
 
@@ -3974,60 +3100,42 @@ snap.forEach(d=>{
 
 const c=d.data()||{};
 
-const mid=
-c.matchId||
-c.match||
-"";
+const mid=c.matchId??c.match??"";
 
-if(
-String(mid)!==
-String(matchId)
-)
+if(String(mid)!==String(matchId))
 return;
 
-if(
-contestStatus(c)==="closed"
-)
+if(contestStatus(c)==="closed")
 return;
 
-const money=
-contestMoney(c);
+const money=contestMoney(c);
 
 const name=
-c.name||
-c.contestName||
-c.title||
+c.name??
+c.contestName??
+c.title??
 `Contest ${list.length+1}`;
 
 list.push({
-
 id:d.id,
-
 name,
-
 prize:money.prize
-
 });
 
 });
-
 
 if(!list.length){
 
 box.innerHTML=
-`
-<div class="empty">
+`<div class="empty">
 📭 এই Live Match-এর কোনো Contest নেই।
-</div>
-`;
+</div>`;
 
 return;
 
 }
 
-
-box.innerHTML=
-list.map(c=>`
+box.innerHTML=list.map(c=>`
 
 <div class="card">
 
@@ -4035,9 +3143,7 @@ list.map(c=>`
 
 <div class="grow">
 
-<b>
-🏆 ${esc(c.name)}
-</b>
+<b>🏆 ${esc(c.name)}</b>
 
 <div class="contestLine">
 🏆 Prize:
@@ -4062,17 +3168,12 @@ Leaderboard →
 
 }catch(e){
 
-console.error(
-"Live Contest Error:",
-e
-);
+console.error("Live Contest Error:",e);
 
 box.innerHTML=
-`
-<div class="card dangerText">
+`<div class="card dangerText">
 ❌ Contest load হয়নি
-</div>
-`;
+</div>`;
 
 }
 
@@ -4083,24 +3184,19 @@ function renderLiveScore(){
 
 const b=$("liveScoreBox");
 
-const m=
-getMatch(selectedMatch);
+const m=getMatch(selectedMatch);
 
 if(!m)
 return b.innerHTML=
-`
-<div class="card">
+`<div class="card">
 ❌ Match পাওয়া যায়নি।
-</div>
-`;
+</div>`;
 
 if(!isLive(m))
 return b.innerHTML=
-`
-<div class="card">
+`<div class="card">
 🔒 এই Match এখন Live নয়।
-</div>
-`;
+</div>`;
 
 b.innerHTML=
 `
@@ -4129,21 +3225,15 @@ ${esc(m.event||"")}
 
 }
 
-
-/* =====================================================
-   CURRENT USER TEAM
-===================================================== */
+/* CURRENT USER TEAM */
 
 function currentUserTeam(){
 
-const u=
-fxFirebase.user;
+const u=fxFirebase.user;
 
 return teams.find(
 t=>
-String(
-t.matchId||t.match
-)===
+String(t.matchId||t.match)===
 String(selectedMatch)&&
 String(t.userId)===
 String(u?.uid)
@@ -4152,9 +3242,7 @@ String(u?.uid)
 }
 
 
-/* =====================================================
-   LIVE POINTS
-===================================================== */
+/* LIVE PLAYER POINTS */
 
 function renderPoints(){
 
@@ -4162,21 +3250,18 @@ const b=$("pointBox");
 
 if(!b)return;
 
-const t=
-currentUserTeam();
+const t=currentUserTeam();
 
 if(!t){
 
 b.innerHTML=
-`
-<div class="empty">
+`<div class="empty">
 এই Match-এ আপনার Team নেই।
-</div>
-`;
+</div>`;
 
 return;
-
 }
+
 
 const list=
 getTeamPlayerObjects(t);
@@ -4184,26 +3269,22 @@ getTeamPlayerObjects(t);
 if(!list.length){
 
 b.innerHTML=
-`
-<div class="empty">
+`<div class="empty">
 Player পাওয়া যায়নি।
-</div>
-`;
+</div>`;
 
 return;
-
 }
 
+
 b.innerHTML=
-list.map(p=>{
+
+list.map((p,index)=>{
 
 const s=p.stats||{};
 
-const isC=
-p.multiplier===2;
-
-const isVC=
-p.multiplier===1.5;
+const isC=p.multiplier===2;
+const isVC=p.multiplier===1.5;
 
 return`
 
@@ -4227,22 +3308,13 @@ isVC
 }
 
 <div class="small">
-
 Runs ${Number(s.runs||0)}
-
 •
-
 4s ${Number(s.fours||0)}
-
 •
-
 6s ${Number(s.sixes||0)}
-
 •
-
-Wkts
-${Number(s.wickets||s.wkts||0)}
-
+Wkts ${Number(s.wickets||s.wkts||0)}
 </div>
 
 </span>
@@ -4255,19 +3327,18 @@ ${p.points}
 
 `;
 
-}).join("")+
+}).join("")
+
++
 
 `
 <div class="card">
 
 <b>
-
 Total Fantasy Points:
-
 <span class="green">
 ${teamPoints(t)}
 </span>
-
 </b>
 
 </div>
@@ -4276,246 +3347,34 @@ ${teamPoints(t)}
 }
 
 
+
 /* =====================================================
-   LEADERBOARD
-   IMPORTANT FIXED VERSION
-===================================================== */
-
-
-/*
-   Leaderboard খুললে আগে ওই Match-এর
-   Player data নিশ্চিতভাবে load হবে।
-
-   এটাই Finished Match-এর 0 points সমস্যা
-   ঠিক করার অন্যতম গুরুত্বপূর্ণ অংশ।
-*/
+   LEADERBOARD (CONTEST AND MATCH SEPARATE)
+   ===================================================== */
 
 window.openMatchLeaderboard=async matchId=>{
 
-const m=
-getMatch(matchId);
-
-if(!m)
-return toast(
-"❌ Match পাওয়া যায়নি"
-);
-
-selectedMatch=
-String(matchId);
-
+selectedMatch=matchId;
 window.selectedContest=null;
-
-/*
-   Match leaderboard হলে কোনো contest selected থাকবে না।
-*/
-
-await loadPlayersForLeaderboard(
-selectedMatch
-);
 
 go("leaderboard");
 
 await renderLeaderboard();
 
 };
-
-
-/*
-   Contest leaderboard:
-
-   Live / Upcoming / Finished —
-   তিন ক্ষেত্রেই একই function।
-
-   Live calculation পরিবর্তন করা হয়নি।
-*/
 
 window.openContestLeaderboard=async contestId=>{
 
+window.selectedContest=String(contestId);
+
 if(!selectedMatch)
-return toast(
-"❌ Match পাওয়া যায়নি"
-);
-
-window.selectedContest=
-String(contestId);
-
-/*
-   Contest থেকে match বের করে
-   দরকার হলে selectedMatch ঠিক করা।
-*/
-
-try{
-
-const snap=
-await getDocs(
-collection(db,"contestEntries")
-);
-
-const entry=
-snap.docs
-.map(d=>({
-id:d.id,
-...d.data()
-}))
-.find(
-e=>
-String(e.contestId)===
-String(contestId)
-);
-
-if(
-entry?.matchId
-){
-
-selectedMatch=
-String(entry.matchId);
-
-}
-
-}catch(e){
-
-console.error(
-"Contest match lookup:",
-e
-);
-
-}
-
-/*
-   Selected match-এর player list load
-*/
-
-await loadPlayersForLeaderboard(
-selectedMatch
-);
+return toast("❌ Match পাওয়া যায়নি");
 
 go("leaderboard");
 
 await renderLeaderboard();
 
 };
-
-
-/*
-   Leaderboard-এর জন্য Player load।
-   Team create/edit-এর chosen/cap/vc পরিবর্তন হবে না।
-*/
-
-async function loadPlayersForLeaderboard(
-matchId
-){
-
-if(!matchId)
-return false;
-
-try{
-
-const snap=
-await getDocs(
-collection(db,"players")
-);
-
-const list=[];
-
-snap.forEach(d=>{
-
-const x=d.data()||{};
-
-const mid=
-x.matchId??
-x.match??
-"";
-
-if(
-String(mid)!==
-String(matchId)
-)
-return;
-
-const raw=
-String(
-x.role||""
-)
-.trim()
-.toUpperCase();
-
-let r=raw;
-
-if(
-raw==="BAT"||
-raw==="BATTER"
-)
-r="BAT";
-
-else if([
-"AR",
-"ALLROUNDER",
-"ALL-ROUNDER",
-"ALL ROUNDER"
-].includes(raw))
-r="AR";
-
-else if([
-"WK",
-"WICKETKEEPER",
-"WICKET-KEEPER",
-"WICKET KEEPER"
-].includes(raw))
-r="WK";
-
-else if([
-"BOWL",
-"BOWLER"
-].includes(raw))
-r="BOWL";
-
-
-list.push({
-
-id:list.length+1,
-
-firebaseId:d.id,
-
-name:
-x.name||
-x.playerName||
-d.id,
-
-av:
-x.av||
-x.avatar||
-"👤",
-
-role:r,
-
-price:
-Number(x.price??0)
-
-});
-
-});
-
-players=list;
-
-return true;
-
-}catch(e){
-
-console.error(
-"Leaderboard player load:",
-e
-);
-
-return false;
-
-}
-
-}
-
-
-/* =====================================================
-   RENDER LEADERBOARD
-===================================================== */
 
 async function renderLeaderboard(){
 
@@ -4526,129 +3385,39 @@ if(!b)return;
 if(!selectedMatch){
 
 b.innerHTML=
-`
-<div class="card">
+`<div class="card">
 ❌ কোনো Match নির্বাচন করা হয়নি।
-</div>
-`;
+</div>`;
 
 return;
 
 }
 
 b.innerHTML=
-`
-<div class="card">
+`<div class="card">
 🔄 Leaderboard load হচ্ছে...
-</div>
-`;
+</div>`;
 
 try{
 
-const m=
-getMatch(selectedMatch);
+const m=getMatch(selectedMatch);
 
 let targetTeamIds=null;
-
-let titleText=
-m?
-matchTitle(m):
-"Match Leaderboard";
-
-
-/*
-   ==================================================
-   CONTEST-SPECIFIC LEADERBOARD
-   ==================================================
-*/
+let titleText=m?matchTitle(m):"Match Leaderboard";
 
 if(window.selectedContest){
 
-const entrySnap=
-await getDocs(
-collection(db,"contestEntries")
+const entrySnap=await getDocs(collection(db,"contestEntries"));
+
+const entries=entrySnap.docs
+.map(d=>({id:d.id,...d.data()}))
+.filter(e=>
+String(e.matchId||e.match)===String(selectedMatch)&&
+String(e.contestId)===String(window.selectedContest)&&
+String(e.status||"joined").toLowerCase()!=="cancelled"
 );
 
-const entries=
-entrySnap.docs
-.map(d=>({
-id:d.id,
-...d.data()
-}))
-.filter(e=>{
-
-const matchOk=
-String(
-e.matchId||
-e.match
-)===
-String(selectedMatch);
-
-const contestOk=
-String(e.contestId)===
-String(window.selectedContest);
-
-const status=
-String(
-e.status||
-"joined"
-).toLowerCase();
-
-const validStatus=
-status!=="cancelled"&&
-status!=="canceled"&&
-status!=="rejected";
-
-return(
-matchOk&&
-contestOk&&
-validStatus
-);
-
-});
-
-
-/*
-   Contest name
-*/
-
-if(entries.length){
-
-titleText=
-entries[0].contestName||
-entries[0].contest||
-"Contest Leaderboard";
-
-}else{
-
-/*
-   Entry না থাকলেও Contest-এর নাম
-   contests collection থেকে নেওয়া হবে।
-*/
-
-const c=
-contests.find(
-x=>
-String(x.id)===
-String(window.selectedContest)
-);
-
-if(c){
-
-titleText=
-c.name||
-c.contestName||
-c.title||
-"Contest Leaderboard";
-
-}
-
-}
-
-
-/*
-   Contest-এ কেউ না থাকলে
-*/
+titleText=entries[0]?.contestName||"Contest Leaderboard";
 
 if(!entries.length){
 
@@ -4660,24 +3429,8 @@ b.innerHTML=
 🏆 ${esc(titleText)}
 </div>
 
-<div class="small">
-${
-isFinished(m)
-?
-"🏁 Final Contest Result"
-:
-isLive(m)
-?
-"🔴 Live Contest"
-:
-"🎯 Upcoming Contest"
-}
-</div>
-
 <div class="empty">
-
 📭 এই Contest-এ এখনো কেউ Join করেনি।
-
 </div>
 
 </div>
@@ -4687,99 +3440,30 @@ return;
 
 }
 
-
-/*
-   Joined team IDs
-*/
-
-targetTeamIds=
-new Set(
-entries
-.map(e=>
-String(
-e.teamId||
-""
-)
-)
-.filter(Boolean)
-);
+targetTeamIds=new Set(entries.map(e=>String(e.teamId)));
 
 }
 
+const teamSnap=await getDocs(collection(db,"teams"));
 
-/*
-   ==================================================
-   ALL TEAMS
-   ==================================================
-*/
-
-const teamSnap=
-await getDocs(
-collection(db,"teams")
-);
-
-let allTeams=
-teamSnap.docs
-.map(d=>({
-id:d.id,
-...d.data()
-}))
-.filter(
-t=>
-String(
-t.matchId||
-t.match
-)===
-String(selectedMatch)
-);
-
-
-/*
-   Contest selected হলে
-   শুধু ওই contest-এর teams
-*/
+let allTeams=teamSnap.docs
+.map(d=>({id:d.id,...d.data()}))
+.filter(t=>String(t.matchId||t.match)===String(selectedMatch));
 
 if(targetTeamIds){
 
-allTeams=
-allTeams.filter(
-t=>
-targetTeamIds.has(
-String(t.id)
-)
-);
+allTeams=allTeams.filter(t=>targetTeamIds.has(String(t.id)));
 
 }
 
-
-/*
-   ==================================================
-   POINT CALCULATION
-   Live-এর teamPoints() ব্যবহার করা হচ্ছে।
-   ==================================================
-*/
-
-const board=
-allTeams.map(t=>({
+const board=allTeams.map(t=>({
 
 ...t,
-
-total:
-teamPoints(t)
+total:teamPoints(t)
 
 }));
 
-
-/*
-   Highest points first
-*/
-
-board.sort(
-(a,z)=>
-Number(z.total)-
-Number(a.total)
-);
-
+board.sort((a,z)=>Number(z.total)-Number(a.total));
 
 if(!board.length){
 
@@ -4792,9 +3476,7 @@ b.innerHTML=
 </div>
 
 <div class="empty">
-
 📭 এই Leaderboard-এ কোনো Team পাওয়া যায়নি।
-
 </div>
 
 </div>
@@ -4804,16 +3486,7 @@ return;
 
 }
 
-
-const myUid=
-fxFirebase.user?.uid||"";
-
-
-/*
-   ==================================================
-   RANK
-   ==================================================
-*/
+const myUid=fxFirebase.user?.uid||"";
 
 b.innerHTML=
 `
@@ -4824,28 +3497,10 @@ b.innerHTML=
 
 <div class="grow">
 
-<b>
-🏆 ${esc(titleText)}
-</b>
+<b>🏆 ${esc(titleText)}</b>
 
 <div class="small">
-
-${
-window.selectedContest
-?
-isFinished(m)
-?
-"🏁 Final Contest Leaderboard"
-:
-isLive(m)
-?
-"🔴 Live Contest Leaderboard"
-:
-"🎯 Upcoming Contest Leaderboard"
-:
-"🌐 Overall Match Leaderboard"
-}
-
+${window.selectedContest?"🎯 Contest Specific Leaderboard":"🌐 Overall Match Leaderboard"}
 </div>
 
 </div>
@@ -4866,7 +3521,6 @@ Teams
 
 </div>
 
-
 ${
 board.map((t,index)=>{
 
@@ -4883,22 +3537,8 @@ const playersList=
 getTeamPlayerObjects(t);
 
 const safeId=
-"lb_team_"+
-String(t.id)
-.replace(
-/[^a-zA-Z0-9_-]/g,
-"_"
-);
-
-
-/*
-   Rank:
-   1, 2, 3...
-*/
-
-const rank=
-index+1;
-
+"lb_team_"+String(t.id)
+.replace(/[^a-zA-Z0-9_-]/g,"_");
 
 return`
 
@@ -4907,9 +3547,8 @@ return`
 <div class="teamBoardHead">
 
 <div class="rank">
-#${rank}
+#${index+1}
 </div>
-
 
 <div class="grow">
 
@@ -4920,29 +3559,24 @@ ${esc(teamName)}
 ${
 isMine
 ?
-`<span class="myTeamMark">
-MY TEAM
-</span>`
+`<span class="myTeamMark">MY TEAM</span>`
 :
 ""
 }
 
 <div class="small">
-
 ${esc(
 t.userName||
 "FantasyXI User"
 )}
-
 </div>
 
 </div>
-
 
 <div style="text-align:right">
 
 <b class="green">
-${Number(t.total).toFixed(1)}
+${t.total}
 </b>
 
 <div class="small">
@@ -4952,7 +3586,6 @@ Points
 </div>
 
 </div>
-
 
 <div style="padding:0 9px 7px">
 
@@ -4966,7 +3599,6 @@ onclick="toggleBoardTeam('${safeId}')">
 
 </div>
 
-
 <div
 id="${safeId}"
 class="teamBoardBody hide">
@@ -4974,11 +3606,9 @@ class="teamBoardBody hide">
 ${
 playersList.length
 ?
-
 playersList.map(p=>{
 
-const s=
-p.stats||{};
+const s=p.stats||{};
 
 return`
 
@@ -5012,7 +3642,6 @@ p.multiplier===1.5
 
 </div>
 
-
 <div style="text-align:right">
 
 <b class="green">
@@ -5033,11 +3662,9 @@ Points
 
 :
 
-`
-<div class="empty">
+`<div class="empty">
 📭 Player পাওয়া যায়নি।
-</div>
-`
+</div>`
 }
 
 </div>
@@ -5053,23 +3680,13 @@ Points
 
 }catch(e){
 
-console.error(
-"Leaderboard Error:",
-e
-);
+console.error("Leaderboard Error:",e);
 
 b.innerHTML=
 `
 <div class="card dangerText">
 
 ❌ Leaderboard load হয়নি।
-
-<div class="small"
-style="margin-top:5px">
-
-${esc(e.message||"Unknown error")}
-
-</div>
 
 </div>
 `;
@@ -5090,9 +3707,7 @@ e.classList.toggle("hide");
 };
 
 
-/* =====================================================
-   BADGES
-===================================================== */
+/* BADGES */
 
 const badgeFeatures=[
 
@@ -5129,19 +3744,13 @@ cost:30000
 
 function renderBadgeCounts(){
 
-const box=
-$("badgeCountGrid");
+const box=$("badgeCountGrid");
 
 if(!box)return;
 
 const counts=
 window.__badgeCounts||
-{
-1:0,
-2:0,
-3:0,
-4:0
-};
+{1:0,2:0,3:0,4:0};
 
 box.innerHTML=
 badgeFeatures.map(b=>`
@@ -5154,10 +3763,7 @@ ${b.icon}
 
 <b>
 ${esc(
-b.name.replace(
-" Badge",
-""
-)
+b.name.replace(" Badge","")
 )}
 </b>
 
@@ -5178,8 +3784,7 @@ Badge
 
 function renderBadgeFeatures(){
 
-const box=
-$("badgeFeatureGrid");
+const box=$("badgeFeatureGrid");
 
 if(!box)return;
 
@@ -5223,14 +3828,10 @@ x=>x.id===Number(id)
 const u=fxFirebase.user;
 
 if(!b)
-return toast(
-"❌ Badge পাওয়া যায়নি"
-);
+return toast("❌ Badge পাওয়া যায়নি");
 
 if(!u)
-return toast(
-"❌ Login প্রয়োজন"
-);
+return toast("❌ Login প্রয়োজন");
 
 requestBadgeId=b.id;
 
@@ -5270,8 +3871,7 @@ u.displayName||"";
 
 $("badgeRequestPhone").value="";
 $("badgeRequestError").textContent="";
-$("requestWalletCoins").textContent=
-userCoins;
+$("requestWalletCoins").textContent=userCoins;
 
 go("badgeRequest");
 
@@ -5280,8 +3880,7 @@ go("badgeRequest");
 
 window.submitBadgeRequest=async()=>{
 
-if(isSubmittingBadgeRequest)
-return;
+if(isSubmittingBadgeRequest) return;
 
 const b=
 badgeFeatures.find(
@@ -5299,7 +3898,6 @@ err.textContent=
 "❌ Badge নির্বাচন করুন";
 
 return;
-
 }
 
 if(!u){
@@ -5308,16 +3906,13 @@ err.textContent=
 "❌ Login প্রয়োজন";
 
 return;
-
 }
 
 const inputName=
-$("badgeRequestName")
-.value.trim();
+$("badgeRequestName").value.trim();
 
 const phone=
-$("badgeRequestPhone")
-.value.trim();
+$("badgeRequestPhone").value.trim();
 
 if(!inputName){
 
@@ -5325,7 +3920,6 @@ err.textContent=
 "❌ আপনার নাম দিন";
 
 return;
-
 }
 
 if(!/^01\d{9}$/.test(phone)){
@@ -5334,21 +3928,13 @@ err.textContent=
 "❌ সঠিক ১১ সংখ্যার ফোন নম্বর দিন";
 
 return;
-
 }
 
-const btn=
-$("btnSubmitBadgeRequest");
-
-isSubmittingBadgeRequest=true;
-
+const btn = $("btnSubmitBadgeRequest");
+isSubmittingBadgeRequest = true;
 if(btn){
-
-btn.disabled=true;
-
-btn.textContent=
-"⏳ Request পাঠানো হচ্ছে...";
-
+  btn.disabled = true;
+  btn.textContent = "⏳ Request পাঠানো হচ্ছে...";
 }
 
 try{
@@ -5365,9 +3951,7 @@ const userSnap=
 await transaction.get(userRef);
 
 if(!userSnap.exists())
-throw new Error(
-"USER_NOT_FOUND"
-);
+throw new Error("USER_NOT_FOUND");
 
 const userData=
 userSnap.data()||{};
@@ -5385,12 +3969,7 @@ throw new Error(
 );
 
 const requestRef=
-doc(
-collection(
-db,
-"badgeRequests"
-)
-);
+doc(collection(db,"badgeRequests"));
 
 transaction.update(
 userRef,
@@ -5439,19 +4018,13 @@ go("home");
 
 }catch(e){
 
-if(
-e.message===
-"INSUFFICIENT_COINS"
-){
+if(e.message==="INSUFFICIENT_COINS"){
 
 err.textContent=
 `❌ এই Badge-এর জন্য
 ${b.cost.toLocaleString()} Coins প্রয়োজন।`;
 
-}else if(
-e.message===
-"USER_NOT_FOUND"
-){
+}else if(e.message==="USER_NOT_FOUND"){
 
 err.textContent=
 "❌ User Wallet পাওয়া যায়নি";
@@ -5465,21 +4038,15 @@ err.textContent=
 
 }finally{
 
-isSubmittingBadgeRequest=false;
-
+isSubmittingBadgeRequest = false;
 if(btn){
-
-btn.disabled=false;
-
-btn.textContent=
-"📤 Request পাঠান";
-
+  btn.disabled = false;
+  btn.textContent = "📤 Request পাঠান";
 }
 
 }
 
 };
-
 
 function startBadgeListener(){
 
@@ -5490,11 +4057,12 @@ const u=fxFirebase.user;
 
 if(!u)return;
 
-const badgeQuery=
-query(
+
+const badgeQuery=query(
 collection(db,"badgeRequests"),
 where("userId","==",u.uid)
 );
+
 
 badgeUnsubscribe=
 onSnapshot(
@@ -5510,16 +4078,17 @@ const counts={
 4:0
 };
 
+
 snap.forEach(ds=>{
 
 const d=ds.data()||{};
 
-const st=
-String(
+const st=String(
 d.status||"pending"
 )
 .trim()
 .toLowerCase();
+
 
 list.push({
 id:ds.id,
@@ -5527,14 +4096,14 @@ id:ds.id,
 status:st
 });
 
+
 if(
 st==="approved"||
 st==="approve"||
 d.approved===true
 ){
 
-const bid=
-Number(d.badgeId);
+const bid=Number(d.badgeId);
 
 if(
 Object.prototype.hasOwnProperty.call(
@@ -5551,10 +4120,11 @@ counts[bid]++;
 
 });
 
-window.__badgeCounts=
-counts;
+
+window.__badgeCounts=counts;
 
 renderBadgeCounts();
+
 
 list.sort((a,b)=>{
 
@@ -5572,13 +4142,13 @@ return bTime-aTime;
 
 });
 
-const box=
-$("notificationList");
 
-if(!box)return;
+const box=$("notificationList");
 
+if(!box)return; 
+  
 if(!list.length){
-
+  
 box.innerHTML=
 "কোনো নতুন Notification নেই।";
 
@@ -5589,17 +4159,18 @@ return;
 box.innerHTML=
 list.slice(0,3).map(d=>{
 
-const st=
-String(
+const st=String(
 d.status||"pending"
 )
 .trim()
 .toLowerCase();
 
+
 let icon="⏳";
 
 let text=
 `${d.badgeName||"Badge"} Request Pending`;
+
 
 if(
 st==="approved"||
@@ -5612,7 +4183,10 @@ icon="✅";
 text=
 `${d.badgeName||"Badge"} Approved`;
 
-}else if(
+}
+
+
+else if(
 st==="rejected"||
 st==="declined"||
 st==="reject"
@@ -5624,6 +4198,7 @@ text=
 `${d.badgeName||"Badge"} Rejected`;
 
 }
+
 
 return`
 
@@ -5647,17 +4222,14 @@ console.error(
 e
 );
 
-const box=
-$("notificationList");
+const box=$("notificationList");
 
 if(box){
 
 box.innerHTML=
-`
-<div class="notification dangerText">
+`<div class="notification dangerText">
 ❌ Badge Notification load হয়নি
-</div>
-`;
+</div>`;
 
 }
 
@@ -5667,9 +4239,7 @@ box.innerHTML=
 }
 
 
-/* =====================================================
-   PROFILE
-===================================================== */
+/* SAVE PROFILE */
 
 window.saveUser=async()=>{
 
@@ -5677,71 +4247,51 @@ const n=
 $("userName").value.trim();
 
 if(!n)
-return toast(
-"নাম লিখুন"
-);
+return toast("নাম লিখুন");
 
 try{
 
 await setDoc(
-doc(
-db,
-"users",
-fxFirebase.user.uid
-),
+doc(db,"users",fxFirebase.user.uid),
 {
 userName:n,
-email:
-fxFirebase.user.email||"",
-updatedAt:
-serverTimestamp()
+email:fxFirebase.user.email||"",
+updatedAt:serverTimestamp()
 },
 {merge:true}
 );
 
 try{
-
 await updateProfile(
 fxFirebase.user,
 {displayName:n}
 );
-
 }catch(_){}
 
-updateWalletUI(
-n,
-userCoins
-);
+updateWalletUI(n,userCoins);
 
 $("userStatus").textContent=
 "✅ Profile saved";
 
-toast(
-"✅ Profile Saved"
-);
+toast("✅ Profile Saved");
 
 }catch(e){
 
-toast(
-"❌ Profile Save হয়নি"
-);
+toast("❌ Profile Save হয়নি");
 
 }
 
 };
 
 
-/* =====================================================
-   REFERRAL
-===================================================== */
+/* REFERRAL */
 
 window.applyReferral=async()=>{
 
 const u=fxFirebase.user;
 
 const input=
-$("referralInput")
-.value
+$("referralInput").value
 .trim()
 .toUpperCase();
 
@@ -5749,9 +4299,7 @@ const status=
 $("referralStatus");
 
 if(!u)
-return toast(
-"❌ Login প্রয়োজন"
-);
+return toast("❌ Login প্রয়োজন");
 
 if(!input){
 
@@ -5759,17 +4307,12 @@ status.textContent=
 "❌ Referral Code লিখুন";
 
 return;
-
 }
 
 try{
 
 const myRef=
-doc(
-db,
-"users",
-u.uid
-);
+doc(db,"users",u.uid);
 
 const mySnap=
 await getDoc(myRef);
@@ -5780,7 +4323,6 @@ status.textContent=
 "❌ User পাওয়া যায়নি";
 
 return;
-
 }
 
 const myData=
@@ -5795,13 +4337,10 @@ status.textContent=
 "❌ আপনি ইতিমধ্যে Referral ব্যবহার করেছেন";
 
 return;
-
 }
 
 if(
-String(
-myData.referralCode||""
-)
+String(myData.referralCode||"")
 .toUpperCase()===
 input
 ){
@@ -5810,7 +4349,6 @@ status.textContent=
 "❌ নিজের Referral Code ব্যবহার করা যাবে না";
 
 return;
-
 }
 
 const usersSnap=
@@ -5825,19 +4363,14 @@ usersSnap.forEach(d=>{
 const x=d.data()||{};
 
 if(
-String(
-x.referralCode||""
-)
+String(x.referralCode||"")
 .toUpperCase()===
 input
-){
-
+)
 referrer={
 id:d.id,
 data:x
 };
-
-}
 
 });
 
@@ -5847,7 +4380,6 @@ status.textContent=
 "❌ Referral Code সঠিক নয়";
 
 return;
-
 }
 
 if(
@@ -5859,15 +4391,10 @@ status.textContent=
 "❌ নিজের Referral Code ব্যবহার করা যাবে না";
 
 return;
-
 }
 
 const referrerRef=
-doc(
-db,
-"users",
-referrer.id
-);
+doc(db,"users",referrer.id);
 
 const result=
 await runTransaction(
@@ -5875,14 +4402,10 @@ db,
 async transaction=>{
 
 const newUserSnap=
-await transaction.get(
-myRef
-);
+await transaction.get(myRef);
 
 const oldUserSnap=
-await transaction.get(
-referrerRef
-);
+await transaction.get(referrerRef);
 
 if(
 !newUserSnap.exists()||
@@ -5928,10 +4451,8 @@ referredBy:referrer.id,
 referredByCode:input,
 referralCompleted:true,
 referralBonus:100,
-referralCompletedAt:
-serverTimestamp(),
-updatedAt:
-serverTimestamp()
+referralCompletedAt:serverTimestamp(),
+updatedAt:serverTimestamp()
 }
 );
 
@@ -5940,15 +4461,10 @@ referrerRef,
 {
 coins:oldCoins,
 referralCount:
-Number(
-oldUser.referralCount||0
-)+1,
+Number(oldUser.referralCount||0)+1,
 referralEarned:
-Number(
-oldUser.referralEarned||0
-)+100,
-updatedAt:
-serverTimestamp()
+Number(oldUser.referralEarned||0)+100,
+updatedAt:serverTimestamp()
 }
 );
 
@@ -5974,28 +4490,17 @@ $("referralInput").value="";
 status.textContent=
 "✅ Referral সফল! আপনি 100 Coins পেয়েছেন।";
 
-toast(
-"🎉 Referral সফল • +100 Coins"
-);
+toast("🎉 Referral সফল • +100 Coins");
 
 }catch(e){
 
-console.error(
-"Referral:",
-e
-);
+console.error("Referral:",e);
 
-if(
-e.message===
-"ALREADY_USED"
-)
+if(e.message==="ALREADY_USED")
 status.textContent=
 "❌ Referral আগে ব্যবহার করা হয়েছে";
 
-else if(
-e.message===
-"USER_NOT_FOUND"
-)
+else if(e.message==="USER_NOT_FOUND")
 status.textContent=
 "❌ User পাওয়া যায়নি";
 
@@ -6008,9 +4513,7 @@ status.textContent=
 };
 
 
-/* =====================================================
-   NAVIGATION
-===================================================== */
+/* NAVIGATION */
 
 window.go=function(id,nav){
 
@@ -6061,36 +4564,26 @@ loadContests(selectedMatch);
 
 if(id==="livescore"){
 
-subscribePlayerStats(
-selectedMatch
-);
-
+subscribePlayerStats(selectedMatch);
 renderLiveScore();
 
 }
 
 if(id==="points"){
 
-subscribePlayerStats(
-selectedMatch
-);
-
+subscribePlayerStats(selectedMatch);
 renderPoints();
 
 }
 
 if(id==="leaderboard"){
 
-/*
-   Leaderboard-এ ঢোকার সময়
-   selected match-এর players load হবে।
-*/
+subscribePlayerStats(selectedMatch);
 
-loadPlayersForLeaderboard(
-selectedMatch
-).then(()=>{
-renderLeaderboard();
-});
+setTimeout(
+()=>renderLeaderboard(),
+150
+);
 
 }
 
@@ -6108,185 +4601,160 @@ window.scrollTo(0,0);
 
 };
 
+window.watchRewardAd = function(){
 
-/* =====================================================
-   REWARDED AD
-===================================================== */
+  const status = $("adRewardStatus");
 
-window.watchRewardAd=function(){
+  if(status){
+    status.innerText =
+      "📺 বিজ্ঞাপন লোড হচ্ছে...";
+  }
 
-const status=
-$("adRewardStatus");
+  if(
+    window.AndroidRewardAd &&
+    typeof window.AndroidRewardAd.show === "function"
+  ){
 
-if(status){
+    window.AndroidRewardAd.show();
 
-status.innerText=
-"📺 বিজ্ঞাপন লোড হচ্ছে...";
+  }else{
 
-}
+    if(status){
+      status.innerText =
+        "❌ Rewarded Ad এখনো প্রস্তুত নয়";
+    }
 
-if(
-window.AndroidRewardAd&&
-typeof window.AndroidRewardAd.show===
-"function"
-){
-
-window.AndroidRewardAd.show();
-
-}else{
-
-if(status){
-
-status.innerText=
-"❌ Rewarded Ad এখনো প্রস্তুত নয়";
-
-}
-
-}
+  }
 
 };
 
 
-/* =====================================================
-   ANDROID REWARD CALLBACK
-===================================================== */
+/* ANDROID REWARD CALLBACK */
 
-window.rewardAdCompleted=
-async function(){
+window.rewardAdCompleted = async function(){
 
-const status=
-$("adRewardStatus");
+  const status = $("adRewardStatus");
 
-const u=
-fxFirebase.user;
+  const u = fxFirebase.user;
 
-if(!u){
+  if(!u){
 
-if(status){
+    if(status){
+      status.innerText =
+        "❌ Login পাওয়া যায়নি";
+    }
 
-status.innerText=
-"❌ Login পাওয়া যায়নি";
+    return;
 
-}
+  }
 
-return;
+  try{
 
-}
+    const ref = doc(
+      db,
+      "users",
+      u.uid
+    );
 
-try{
+    const newCoins =
+      await runTransaction(
+        db,
+        async(transaction)=>{
 
-const ref=
-doc(
-db,
-"users",
-u.uid
-);
+          const snap =
+            await transaction.get(ref);
 
-const newCoins=
-await runTransaction(
-db,
-async transaction=>{
+          const oldCoins =
+            snap.exists()
+            ?
+            Number(
+              snap.data().coins ?? 0
+            )
+            :
+            0;
 
-const snap=
-await transaction.get(ref);
+          const updatedCoins =
+            oldCoins + 10;
 
-const oldCoins=
-snap.exists()
-?
-Number(
-snap.data().coins??0
-)
-:
-0;
+          transaction.set(
+            ref,
+            {
+              coins: updatedCoins,
+              updatedAt: serverTimestamp()
+            },
+            {
+              merge:true
+            }
+          );
 
-const updatedCoins=
-oldCoins+10;
+          return updatedCoins;
 
-transaction.set(
-ref,
-{
-coins:updatedCoins,
-updatedAt:
-serverTimestamp()
-},
-{
-merge:true
-}
-);
+        }
+      );
 
-return updatedCoins;
+    userCoins = newCoins;
 
-}
-);
+    const name =
+      u.displayName ||
+      "FantasyXI User";
 
-userCoins=
-newCoins;
+    updateWalletUI(
+      name,
+      userCoins
+    );
 
-const name=
-u.displayName||
-"FantasyXI User";
+    if(
+      $("requestWalletCoins")
+    ){
 
-updateWalletUI(
-name,
-userCoins
-);
+      $("requestWalletCoins")
+        .textContent =
+        userCoins;
 
-if(
-$("requestWalletCoins")
-){
+    }
 
-$("requestWalletCoins")
-.textContent=
-userCoins;
+    if(status){
 
-}
+      status.innerText =
+        "🎉 বিজ্ঞাপন দেখার জন্য +10 Coins যোগ হয়েছে!";
 
-if(status){
+    }
 
-status.innerText=
-"🎉 বিজ্ঞাপন দেখার জন্য +10 Coins যোগ হয়েছে!";
+  }catch(e){
 
-}
+    console.error(
+      "Reward Coins:",
+      e
+    );
 
-}catch(e){
+    if(status){
 
-console.error(
-"Reward Coins:",
-e
-);
+      status.innerText =
+        "❌ Coins যোগ করা যায়নি";
 
-if(status){
+    }
 
-status.innerText=
-"❌ Coins যোগ করা যায়নি";
-
-}
-
-}
+  }
 
 };
 
 
-/* =====================================================
-   INITIAL
-===================================================== */
+/* INITIAL */
 
 renderBadgeFeatures();
-
 renderBadgeCounts();
 
 $("matchList").innerHTML=
-`
-<div class="card">
+`<div class="card">
 🔄 Firebase connecting...
-</div>
-`;
+</div>`;
 
 $("contestList").innerHTML=
-`
-<div class="card">
+`<div class="card">
 🏆 Match নির্বাচন করলে Contest দেখাবে...
-</div>
-`;
+</div>`;
 
 </script>
+
+</body>
+</html>
