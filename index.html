@@ -4609,22 +4609,17 @@ window.watchRewardAd = function(){
     status.innerText =
       "📺 বিজ্ঞাপন লোড হচ্ছে...";
   }
-
-  if(
-    window.AndroidRewardAd &&
-    typeof window.AndroidRewardAd.show === "function"
-  ){
-
-    window.AndroidRewardAd.show();
-
-  }else{
-
-    if(status){
-      status.innerText =
-        "❌ Rewarded Ad এখনো প্রস্তুত নয়";
-    }
-
+if(
+  window.WebToApk &&
+  typeof window.WebToApk.showRewardedAd === "function"
+){
+  window.WebToApk.showRewardedAd();
+}else{
+  if(status){
+    status.innerText =
+      "❌ অ্যাপের বিজ্ঞাপন সংযোগ পাওয়া যায়নি";
   }
+}
 
 };
 
@@ -4733,12 +4728,17 @@ window.rewardAdCompleted = async function(){
         "❌ Coins যোগ করা যায়নি";
 
     }
-
+    
   }
 
 };
 
-
+window.addEventListener("appmint:reward", function(e) {
+  if (e.detail && e.detail.type === "rewarded") {
+    window.rewardAdCompleted();
+  }
+});
+  
 /* INITIAL */
 
 renderBadgeFeatures();
