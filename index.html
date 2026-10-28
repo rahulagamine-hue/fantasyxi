@@ -4623,6 +4623,20 @@ if(
 
 };
 
+window.addEventListener("appmint:ad", function(e) {
+  const a = e.detail;
+  if (!a || a.type !== "rewarded") return;
+
+  const status = $("adRewardStatus");
+
+  if (status) {
+    status.innerText =
+      "Ad: " + a.phase +
+      (a.code ? " | " + a.code : "") +
+      (a.message ? " | " + a.message : "");
+  }
+});
+
 
 /* ANDROID REWARD CALLBACK */
 
